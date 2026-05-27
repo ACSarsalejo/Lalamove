@@ -34,6 +34,11 @@ object ApiClient {
     private val storage   get() = FirebaseStorage.getInstance()
     private val handler   = Handler(Looper.getMainLooper())
 
+    // ── PHP API base URL ────────────────────────────────────────────────────
+    // 10.0.2.2 = localhost when running on the Android emulator.
+    // Change to your machine's LAN IP (e.g. 192.168.1.x) for a real device.
+    private const val PHP_BASE = "http://10.0.2.2/lalamove/api"
+
     // ── Auth ────────────────────────────────────────────────────────────────
 
     fun login(identifier: String, password: String, callback: (LoginResult?, String) -> Unit) {
@@ -584,17 +589,53 @@ object ApiClient {
         category: String, subject: String, details: String,
         callback: (Boolean, String) -> Unit
     ) {
-        // Check for existing open report
-        firestore.collection("dispute")
-            .whereEqualTo("Disp_ReporterID", reporterUid)
-            .whereEqualTo("Disp_Status", "open")
-            .whereEqualTo("Disp_BookID", null)
-            .get()
-            .addOnSuccessListener { snap ->
-                if (!snap.isEmpty) {
-                    handler.post { callback(false, "You already have an open report pending review.") }
-                    return@addOnSuccessListener
+        // POST to PHP → writes into MySQL Dispute table (visible in admin web)
+        Thread {
+            try {
+                val body = org.json.JSONObject().apply {
+                    put("acct_id",   reporterUid)
+                    put("driver_id", driverUid)
+                    put("category",  category)
+                    put("subject",   subject)
+                    put("details",   details)
+                }.toString()
+
+                val conn = java.net.URL("$PHP_BASE/report_driver.php").openConnection()
+                        as java.net.HttpURLConnection
+                conn.requestMethod      = "POST"
+                conn.doOutput           = true
+                conn.connectTimeout     = 10_000
+                conn.readTimeout        = 10_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+
+                val code     = conn.responseCode
+                val response = conn.inputStream.bufferedReader().readText()
+                val json     = org.json.JSONObject(response)
+                val ok       = json.optBoolean("success", false)
+                val errMsg   = json.optString("error", "Report failed.")
+
+                if (ok) {
+                    // Mirror to Firestore so the app can cross-check locally
+                    val data = mapOf(
+                        "Disp_BookID"       to null,
+                        "Disp_ReporterType" to "customer",
+                        "Disp_ReporterID"   to reporterUid,
+                        "Disp_AccusedType"  to "driver",
+                        "Disp_AccusedID"    to driverUid,
+                        "Disp_Subject"      to subject,
+                        "Disp_Details"      to details,
+                        "Disp_Category"     to category,
+                        "Disp_Status"       to "open",
+                        "Disp_CreatedAt"    to com.google.firebase.Timestamp.now()
+                    )
+                    firestore.collection("dispute").add(data)
+                    handler.post { callback(true, "") }
+                } else {
+                    handler.post { callback(false, errMsg) }
                 }
+            } catch (e: Exception) {
+                // PHP unreachable — fall back to Firestore-only so offline reports still work
                 val data = mapOf(
                     "Disp_BookID"       to null,
                     "Disp_ReporterType" to "customer",
@@ -605,13 +646,14 @@ object ApiClient {
                     "Disp_Details"      to details,
                     "Disp_Category"     to category,
                     "Disp_Status"       to "open",
-                    "Disp_CreatedAt"    to com.google.firebase.Timestamp.now()
+                    "Disp_CreatedAt"    to com.google.firebase.Timestamp.now(),
+                    "_php_sync_pending" to true   // flag for later re-sync
                 )
                 firestore.collection("dispute").add(data)
                     .addOnSuccessListener { handler.post { callback(true, "") } }
-                    .addOnFailureListener { e -> handler.post { callback(false, e.message ?: "Report failed.") } }
+                    .addOnFailureListener { fe -> handler.post { callback(false, fe.message ?: "Report failed.") } }
             }
-            .addOnFailureListener { e -> handler.post { callback(false, e.message ?: "Report failed.") } }
+        }.start()
     }
 
     // ── Favourite Drivers ────────────────────────────────────────────────────
