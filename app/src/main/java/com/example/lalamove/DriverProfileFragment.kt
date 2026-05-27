@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
@@ -16,16 +17,15 @@ class DriverProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        refreshProfile(view)
 
-        val name  = SessionManager.getName(requireContext())
-        val email = SessionManager.getEmail(requireContext())
+        view.findViewById<LinearLayout>(R.id.menuDriverEditProfile).setOnClickListener {
+            startActivity(Intent(requireContext(), SettingsActivity::class.java))
+        }
 
-        val initial = name.firstOrNull()?.uppercaseChar()?.toString() ?: "D"
-        view.findViewById<TextView>(R.id.textDriverInitial).text  = initial
-        view.findViewById<TextView>(R.id.textProfileName).text    = name.ifEmpty { "Driver" }
-        view.findViewById<TextView>(R.id.textProfileEmail).text   = email.ifEmpty { "" }
-        view.findViewById<TextView>(R.id.textProfileNameRow).text  = name.ifEmpty { "—" }
-        view.findViewById<TextView>(R.id.textProfileEmailRow).text = email.ifEmpty { "—" }
+        view.findViewById<LinearLayout>(R.id.menuDriverEarnings).setOnClickListener {
+            startActivity(Intent(requireContext(), DriverEarningsActivity::class.java))
+        }
 
         view.findViewById<MaterialButton>(R.id.btnDriverLogout).setOnClickListener {
             SessionManager.clear(requireContext())
@@ -35,5 +35,21 @@ class DriverProfileFragment : Fragment() {
                 }
             )
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        view?.let { refreshProfile(it) }
+    }
+
+    private fun refreshProfile(view: View) {
+        val name  = SessionManager.getName(requireContext())
+        val email = SessionManager.getEmail(requireContext())
+        val initial = name.firstOrNull()?.uppercaseChar()?.toString() ?: "D"
+        view.findViewById<TextView>(R.id.textDriverInitial).text  = initial
+        view.findViewById<TextView>(R.id.textProfileName).text    = name.ifEmpty { "Driver" }
+        view.findViewById<TextView>(R.id.textProfileEmail).text   = email.ifEmpty { "" }
+        view.findViewById<TextView>(R.id.textProfileNameRow).text  = name.ifEmpty { "—" }
+        view.findViewById<TextView>(R.id.textProfileEmailRow).text = email.ifEmpty { "—" }
     }
 }

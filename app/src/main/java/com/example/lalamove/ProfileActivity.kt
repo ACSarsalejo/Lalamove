@@ -2,73 +2,76 @@ package com.example.lalamove
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.button.MaterialButton
 
 class ProfileActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
 
-        // Get the saved display name
-        val sharedPref = getSharedPreferences("UserPrefs", MODE_PRIVATE)
-        val displayName = sharedPref.getString("displayName", "Achilly")
+        val name  = SessionManager.getName(this)
+        val email = SessionManager.getEmail(this)
 
-        // Update the user name in header
-        val userName = findViewById<TextView>(R.id.userName)
-        userName.text = displayName
+        // Header
+        val initial = name.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
+        findViewById<TextView>(R.id.profileInitial).text = initial
+        findViewById<TextView>(R.id.userName).text       = name.ifEmpty { "Customer" }
+        findViewById<TextView>(R.id.userEmail).text      = email
 
         // Menu items
-        val menuOrders = findViewById<LinearLayout>(R.id.menuOrders)
-        val menuWallet = findViewById<LinearLayout>(R.id.menuWallet)
-        val menuDeliveryForm = findViewById<LinearLayout>(R.id.menuDeliveryForm)
-        val menuMyDrivers = findViewById<LinearLayout>(R.id.menuMyDrivers)
-        val menuHelpCenter = findViewById<LinearLayout>(R.id.menuHelpCenter)
-        val menuSettings = findViewById<LinearLayout>(R.id.menuSettings)
-        val btnSignOut = findViewById<Button>(R.id.btnSignOut)
-
-        // Set click listeners (just show toast for now)
-        menuOrders.setOnClickListener {
-            Toast.makeText(this, "Orders - Coming Soon!", Toast.LENGTH_SHORT).show()
+        findViewById<LinearLayout>(R.id.menuOrders).setOnClickListener {
+            startActivity(Intent(this, CustomerOrdersActivity::class.java))
         }
 
-        menuWallet.setOnClickListener {
-            Toast.makeText(this, "Wallet - Coming Soon!", Toast.LENGTH_SHORT).show()
+        findViewById<LinearLayout>(R.id.menuWallet).setOnClickListener {
+            val role = SessionManager.getRole(this) ?: "customer"
+            val dest = if (role == "driver") WalletActivity::class.java else CustomerWalletActivity::class.java
+            startActivity(Intent(this, dest))
         }
 
-        menuDeliveryForm.setOnClickListener {
-            Toast.makeText(this, "Delivery Form - Coming Soon!", Toast.LENGTH_SHORT).show()
+        findViewById<LinearLayout>(R.id.menuSavedAddresses).setOnClickListener {
+            startActivity(Intent(this, SavedAddressesActivity::class.java))
         }
 
-        menuMyDrivers.setOnClickListener {
-            Toast.makeText(this, "My Drivers - Coming Soon!", Toast.LENGTH_SHORT).show()
+        findViewById<LinearLayout>(R.id.menuDeliveryForm).setOnClickListener {
+            startActivity(Intent(this, DeliveryFormActivity::class.java))
         }
 
-        menuHelpCenter.setOnClickListener {
-            Toast.makeText(this, "Help Center - Coming Soon!", Toast.LENGTH_SHORT).show()
+        findViewById<LinearLayout>(R.id.menuMyDrivers).setOnClickListener {
+            startActivity(Intent(this, MyDriversActivity::class.java))
         }
 
-        menuSettings.setOnClickListener {
-            Toast.makeText(this, "Settings - Coming Soon!", Toast.LENGTH_SHORT).show()
+        findViewById<LinearLayout>(R.id.menuSettings).setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-        // Sign Out button click
-        btnSignOut.setOnClickListener {
-            // Clear saved user data
-            val editor = sharedPref.edit()
-            editor.clear()
-            editor.apply()
+        findViewById<LinearLayout>(R.id.menuHelpCenter).setOnClickListener {
+            Toast.makeText(this, "Help Center coming soon!", Toast.LENGTH_SHORT).show()
+        }
 
-            Toast.makeText(this, "Signed out successfully!", Toast.LENGTH_SHORT).show()
-
-            // Navigate back to login screen
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
+        // Sign out
+        findViewById<MaterialButton>(R.id.btnSignOut).setOnClickListener {
+            SessionManager.clear(this)
+            startActivity(Intent(this, LoginActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            })
             finish()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh name/email in case settings were updated
+        val name  = SessionManager.getName(this)
+        val email = SessionManager.getEmail(this)
+        val initial = name.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
+        findViewById<TextView>(R.id.profileInitial).text = initial
+        findViewById<TextView>(R.id.userName).text       = name.ifEmpty { "Customer" }
+        findViewById<TextView>(R.id.userEmail).text      = email
     }
 }

@@ -3,7 +3,9 @@ package com.example.lalamove
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -13,11 +15,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.firestore.FirebaseFirestore
+import org.json.JSONObject
 import kotlin.math.roundToInt
 
 class VehicleSelectionActivity : AppCompatActivity() {
@@ -44,7 +50,9 @@ class VehicleSelectionActivity : AppCompatActivity() {
     private var isQueueSelected = false
     private var isFaceProfileSelected = true  // default on, like the web
     private var isThermalSelected = false
+    private var isCclexSelected = false
     private val selectedServices = mutableListOf("Require driver to show Face and Driver app Profile")
+    private val CCLEX_PRICE = 68.0
 
     // Priority tier
     private var selectedTier = "regular"
@@ -54,6 +62,11 @@ class VehicleSelectionActivity : AppCompatActivity() {
     private var pickupLng: Double? = null
     private var dropoffLat: Double? = null
     private var dropoffLng: Double? = null
+
+    // Multi-stop data
+    data class StopData(var text: String = "", var lat: Double? = null, var lng: Double? = null)
+    private val extraStops = mutableListOf<StopData>()
+    private var currentStopIndex = -1   // -1 = not picking a stop; else = index in extraStops
 
     private val vehicleIcons = mapOf(
         "motorcycle" to R.drawable.ic_vehicle_motorcycle,
@@ -77,12 +90,21 @@ class VehicleSelectionActivity : AppCompatActivity() {
             val locationName = data?.getStringExtra("LOCATION_NAME") ?: ""
             val lat = data?.getDoubleExtra("LOCATION_LAT", 0.0) ?: 0.0
             val lng = data?.getDoubleExtra("LOCATION_LNG", 0.0) ?: 0.0
-            if (currentLocationType == "pickup") {
-                findViewById<TextView>(R.id.pickupLocationText).text = locationName
-                pickupLat = lat; pickupLng = lng
-            } else {
-                findViewById<TextView>(R.id.dropoffLocationText).text = locationName
-                dropoffLat = lat; dropoffLng = lng
+            when {
+                currentLocationType == "pickup" -> {
+                    findViewById<TextView>(R.id.pickupLocationText).text = locationName
+                    pickupLat = lat; pickupLng = lng
+                }
+                currentLocationType == "dropoff" -> {
+                    findViewById<TextView>(R.id.dropoffLocationText).text = locationName
+                    dropoffLat = lat; dropoffLng = lng
+                }
+                currentLocationType == "stop" && currentStopIndex >= 0 -> {
+                    extraStops[currentStopIndex].text = locationName
+                    extraStops[currentStopIndex].lat  = lat
+                    extraStops[currentStopIndex].lng  = lng
+                    refreshStopViews()
+                }
             }
             calculateDistance()
             onConditionsChanged()
@@ -111,6 +133,13 @@ class VehicleSelectionActivity : AppCompatActivity() {
         // Next button
         findViewById<MaterialButton>(R.id.btnProceed).setOnClickListener {
             val finalPrice = priceForTier(selectedTier)
+            val stopsJson = org.json.JSONArray().apply {
+                extraStops.forEach { s -> put(org.json.JSONObject().apply {
+                    put("text", s.text)
+                    put("lat",  s.lat ?: 0.0)
+                    put("lng",  s.lng ?: 0.0)
+                }) }
+            }.toString()
             startActivity(Intent(this, OrderDetailsActivity::class.java).apply {
                 putExtra("TOTAL_PRICE",  "₱%.2f".format(finalPrice))
                 putExtra("VEHICLE_TYPE", selectedVehicleType)
@@ -118,6 +147,7 @@ class VehicleSelectionActivity : AppCompatActivity() {
                 putExtra("PICKUP",       findViewById<TextView>(R.id.pickupLocationText).text.toString())
                 putExtra("DROPOFF",      findViewById<TextView>(R.id.dropoffLocationText).text.toString())
                 putExtra("DISTANCE_KM",  distanceKm)
+                putExtra("STOPS_JSON",   stopsJson)
             })
         }
 
@@ -134,7 +164,7 @@ class VehicleSelectionActivity : AppCompatActivity() {
             drawerLayout.closeDrawer(GravityCompat.START)
             when (item.itemId) {
                 R.id.nav_orders        -> startActivity(Intent(this, CustomerOrdersActivity::class.java))
-                R.id.nav_wallet        -> startActivity(Intent(this, WalletActivity::class.java))
+                R.id.nav_wallet        -> startActivity(Intent(this, CustomerWalletActivity::class.java))
                 R.id.nav_my_drivers    -> startActivity(Intent(this, MyDriversActivity::class.java))
                 R.id.nav_delivery_form -> startActivity(Intent(this, DeliveryFormActivity::class.java))
                 R.id.nav_help          -> Toast.makeText(this, "Help Center coming soon!", Toast.LENGTH_SHORT).show()
@@ -175,6 +205,33 @@ class VehicleSelectionActivity : AppCompatActivity() {
         findViewById<LinearLayout>(R.id.dropoffLocation).setOnClickListener {
             currentLocationType = "dropoff"
             locationLauncher.launch(Intent(this, LocationSelectionActivity::class.java).putExtra("LOCATION_TYPE", "dropoff"))
+        }
+
+        // Saved address shortcut buttons
+        findViewById<ImageView>(R.id.btnPickupSaved).setOnClickListener {
+            currentLocationType = "pickup"
+            showSavedAddressesSheet()
+        }
+        findViewById<ImageView>(R.id.btnDropoffSaved).setOnClickListener {
+            currentLocationType = "dropoff"
+            showSavedAddressesSheet()
+        }
+
+        // Add Stop button
+        findViewById<LinearLayout>(R.id.btnAddStop).setOnClickListener {
+            if (extraStops.size >= 18) {   // max 20 stops total (1 pickup + 18 extra + 1 dropoff)
+                Toast.makeText(this, "Maximum 20 stops reached.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            extraStops.add(StopData("Choose Stop ${extraStops.size + 1}"))
+            refreshStopViews()
+            // Immediately launch picker for this new stop
+            currentLocationType = "stop"
+            currentStopIndex = extraStops.size - 1
+            locationLauncher.launch(
+                Intent(this, LocationSelectionActivity::class.java)
+                    .putExtra("LOCATION_TYPE", "stop")
+            )
         }
 
         findViewById<ImageView>(R.id.hamburgerIcon).setOnClickListener { drawerLayout.openDrawer(GravityCompat.START) }
@@ -285,10 +342,12 @@ class VehicleSelectionActivity : AppCompatActivity() {
         val svcQueue = expansion.findViewById<MaterialCardView>(R.id.svcQueue)
         val svcFace  = expansion.findViewById<MaterialCardView>(R.id.svcFaceProfile)
         val svcTherm = expansion.findViewById<MaterialCardView>(R.id.svcThermal)
+        val svcCclex = expansion.findViewById<MaterialCardView>(R.id.svcCclex)
 
         styleService(svcQueue, isQueueSelected)
         styleService(svcFace,  isFaceProfileSelected)
         styleService(svcTherm, isThermalSelected)
+        styleService(svcCclex, isCclexSelected)
 
         svcQueue.setOnClickListener {
             isQueueSelected = !isQueueSelected
@@ -310,6 +369,13 @@ class VehicleSelectionActivity : AppCompatActivity() {
             else selectedServices.remove("Thermal bag")
             styleService(svcTherm, isThermalSelected)
         }
+        svcCclex.setOnClickListener {
+            isCclexSelected = !isCclexSelected
+            if (isCclexSelected) selectedServices.add("Pass Thrue CCLEX (+₱68)")
+            else selectedServices.remove("Pass Thrue CCLEX (+₱68)")
+            styleService(svcCclex, isCclexSelected)
+            updateSheetPrices()
+        }
     }
 
     private fun styleService(card: MaterialCardView, selected: Boolean) {
@@ -324,7 +390,7 @@ class VehicleSelectionActivity : AppCompatActivity() {
 
     // ── Priority sheet ─────────────────────────────────────────────────────────
 
-    private fun baseTotal() = basePrice + distanceKm * perKmPrice + serviceQueuePrice
+    private fun baseTotal() = basePrice + distanceKm * perKmPrice + serviceQueuePrice + (if (isCclexSelected) CCLEX_PRICE else 0.0)
 
     private fun priceForTier(tier: String): Double {
         val base = baseTotal()
@@ -367,20 +433,159 @@ class VehicleSelectionActivity : AppCompatActivity() {
         style(R.id.cardPooling,  R.id.tvPoolingPrice,  tier == "pooling")
     }
 
+    // ── Saved Addresses Sheet ──────────────────────────────────────────────────
+
+    private fun showSavedAddressesSheet() {
+        val acctId = SessionManager.getAcctId(this)
+        val dialog = BottomSheetDialog(this)
+        val sheetView = LayoutInflater.from(this).inflate(R.layout.sheet_saved_addresses, null)
+        dialog.setContentView(sheetView)
+
+        val titleText  = sheetView.findViewById<TextView>(R.id.sheetTitle)
+        val recycler   = sheetView.findViewById<RecyclerView>(R.id.sheetRecycler)
+        val emptyText  = sheetView.findViewById<TextView>(R.id.sheetEmptyText)
+        val loadingText = sheetView.findViewById<TextView>(R.id.sheetLoading)
+
+        titleText.text = if (currentLocationType == "pickup") "Pick-up Location" else "Drop-off Location"
+
+        recycler.layoutManager = LinearLayoutManager(this)
+
+        ApiClient.getAddresses(acctId) { arr ->
+            loadingText.visibility = View.GONE
+            if (arr == null || arr.length() == 0) {
+                emptyText.visibility = View.VISIBLE
+                return@getAddresses
+            }
+            emptyText.visibility = View.GONE
+
+            val list = mutableListOf<JSONObject>()
+            for (i in 0 until arr.length()) list.add(arr.getJSONObject(i))
+
+            class AddrVH(v: View) : RecyclerView.ViewHolder(v)
+
+            recycler.adapter = object : RecyclerView.Adapter<AddrVH>() {
+
+                override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AddrVH =
+                    AddrVH(LayoutInflater.from(parent.context).inflate(R.layout.item_saved_address_pick, parent, false))
+
+                override fun getItemCount() = list.size
+
+                override fun onBindViewHolder(holder: AddrVH, position: Int) {
+                    val addr    = list[position]
+                    val label   = addr.optString("Addr_Label", "Address")
+                    val address = addr.optString("Addr_Address", "")
+                    val type    = addr.optString("Addr_Type", "other")
+                    val icon    = when (type) { "home" -> "🏠"; "work" -> "💼"; else -> "📍" }
+                    holder.itemView.findViewById<TextView>(R.id.pickAddrIcon).text    = icon
+                    holder.itemView.findViewById<TextView>(R.id.pickAddrLabel).text   = label
+                    holder.itemView.findViewById<TextView>(R.id.pickAddrAddress).text = address
+
+                    holder.itemView.setOnClickListener {
+                        dialog.dismiss()
+                        // Show loading toast then geocode
+                        Toast.makeText(this@VehicleSelectionActivity, "Finding \"$label\"…", Toast.LENGTH_SHORT).show()
+                        ApiClient.geocodeAddress(address) { lat, lng ->
+                            if (lat != null && lng != null) {
+                                val locType = currentLocationType
+                                if (locType == "pickup") {
+                                    findViewById<TextView>(R.id.pickupLocationText).text = "$label – $address"
+                                    pickupLat = lat; pickupLng = lng
+                                } else {
+                                    findViewById<TextView>(R.id.dropoffLocationText).text = "$label – $address"
+                                    dropoffLat = lat; dropoffLng = lng
+                                }
+                                calculateDistance()
+                                onConditionsChanged()
+                            } else {
+                                // Could not geocode — still set the text but warn
+                                val locType = currentLocationType
+                                if (locType == "pickup") {
+                                    findViewById<TextView>(R.id.pickupLocationText).text = address
+                                } else {
+                                    findViewById<TextView>(R.id.dropoffLocationText).text = address
+                                }
+                                Toast.makeText(this@VehicleSelectionActivity,
+                                    "Address set. Please verify on map.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        dialog.show()
+    }
+
+    // ── Multi-stop helpers ─────────────────────────────────────────────────────
+
+    /** Rebuild the dynamic stop rows inside stopsContainer */
+    private fun refreshStopViews() {
+        val container = findViewById<LinearLayout>(R.id.stopsContainer)
+        container.removeAllViews()
+        extraStops.forEachIndexed { idx, stop ->
+            val row = LayoutInflater.from(this).inflate(R.layout.item_stop_row, container, false)
+            row.findViewById<TextView>(R.id.stopText).text =
+                if (stop.text.isNotEmpty() && !stop.text.startsWith("Choose")) stop.text
+                else "Stop ${idx + 1} — Tap to choose"
+            row.findViewById<TextView>(R.id.stopIndex).text = "${idx + 1}"
+            row.setOnClickListener {
+                currentLocationType = "stop"
+                currentStopIndex = idx
+                locationLauncher.launch(
+                    Intent(this, LocationSelectionActivity::class.java)
+                        .putExtra("LOCATION_TYPE", "stop")
+                )
+            }
+            row.findViewById<ImageView>(R.id.btnRemoveStop).setOnClickListener {
+                extraStops.removeAt(idx)
+                refreshStopViews()
+                calculateDistance()
+                onConditionsChanged()
+            }
+            container.addView(row)
+            // Add a divider
+            val div = View(this)
+            div.layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(1))
+            div.setBackgroundColor(0xFFF0F0F0.toInt())
+            container.addView(div)
+        }
+    }
+
     // ── Utilities ──────────────────────────────────────────────────────────────
+
+    private fun haversine(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+        val R = 6371.0
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLng = Math.toRadians(lng2 - lng1)
+        val a = Math.sin(dLat / 2).let { it * it } +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLng / 2).let { it * it }
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    }
 
     private fun calculateDistance() {
         val pLat = pickupLat ?: return
         val pLng = pickupLng ?: return
         val dLat = dropoffLat ?: return
         val dLng = dropoffLng ?: return
-        val R = 6371.0
-        val dLatR = Math.toRadians(dLat - pLat)
-        val dLngR = Math.toRadians(dLng - pLng)
-        val a = Math.sin(dLatR / 2).let { it * it } +
-                Math.cos(Math.toRadians(pLat)) * Math.cos(Math.toRadians(dLat)) *
-                Math.sin(dLngR / 2).let { it * it }
-        distanceKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+        // Build ordered waypoints: pickup → stops → dropoff
+        val waypoints = mutableListOf(Pair(pLat, pLng))
+        extraStops.forEach { stop ->
+            val sLat = stop.lat ?: return@forEach
+            val sLng = stop.lng ?: return@forEach
+            waypoints.add(Pair(sLat, sLng))
+        }
+        waypoints.add(Pair(dLat, dLng))
+
+        // Sum distances between consecutive waypoints
+        distanceKm = 0.0
+        for (i in 0 until waypoints.size - 1) {
+            val (lat1, lng1) = waypoints[i]
+            val (lat2, lng2) = waypoints[i + 1]
+            distanceKm += haversine(lat1, lng1, lat2, lng2)
+        }
     }
 
     private fun dpToPx(dp: Int) = (dp * resources.displayMetrics.density).toInt()
@@ -404,6 +609,9 @@ class VehicleSelectionActivity : AppCompatActivity() {
         pickupLng = null
         dropoffLat = null
         dropoffLng = null
+        extraStops.clear()
+        currentStopIndex = -1
+        findViewById<LinearLayout>(R.id.stopsContainer).removeAllViews()
 
         findViewById<TextView>(R.id.pickupLocationText).text = "Choose Pickup Location"
         findViewById<TextView>(R.id.dropoffLocationText).text = "Choose Dropoff Location"
@@ -424,8 +632,7 @@ class VehicleSelectionActivity : AppCompatActivity() {
     }
 
     private fun checkRecentOrder() {
-        val userIdLong = SessionManager.getUserId(this).takeIf { it != 0L } ?: return
-        val userId = userIdLong.toString()
+        val userId = SessionManager.getUserId(this).takeIf { it.isNotEmpty() } ?: return
         val banner     = findViewById<MaterialCardView>(R.id.recentOrderBanner)
         val statusText = findViewById<TextView>(R.id.recentOrderStatus)
         val orderText  = findViewById<TextView>(R.id.recentOrderText)
@@ -473,11 +680,7 @@ class VehicleSelectionActivity : AppCompatActivity() {
 
         firestore.collection("booking").whereEqualTo("Book_CustID", userId).whereIn("Book_Status", activeStatuses).get()
             .addOnSuccessListener { docs ->
-                if (!docs.isEmpty && processDocs(docs.documents)) return@addOnSuccessListener
-                firestore.collection("booking").whereEqualTo("Book_CustID", userIdLong).whereIn("Book_Status", activeStatuses).get()
-                    .addOnSuccessListener { docs2 ->
-                        if (docs2.isEmpty || !processDocs(docs2.documents)) banner.visibility = View.GONE
-                    }
+                if (docs.isEmpty || !processDocs(docs.documents)) banner.visibility = View.GONE
             }
     }
 }

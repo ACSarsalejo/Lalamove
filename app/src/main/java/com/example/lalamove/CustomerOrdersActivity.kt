@@ -30,14 +30,11 @@ import com.google.firebase.firestore.ListenerRegistration
 class CustomerOrdersActivity : AppCompatActivity() {
 
     private lateinit var firestore: FirebaseFirestore
-    // Two listeners needed because whereIn with mixed types (String + Long) is rejected by Firestore SDK
-    private var ordersListenerStr:  ListenerRegistration? = null
-    private var ordersListenerLong: ListenerRegistration? = null
-    private val ordersByStrId  = mutableMapOf<String, Map<String, Any?>>()
-    private val ordersByLongId = mutableMapOf<String, Map<String, Any?>>()
-    private val ordersList = mutableListOf<Map<String, Any?>>()
-    private val orderIds   = mutableListOf<String>()
-    private val driversMap = mutableMapOf<String, Map<String, Any?>>()
+    private var ordersListener: ListenerRegistration? = null
+    private val ordersList      = mutableListOf<Map<String, Any?>>()
+    private val orderIds        = mutableListOf<String>()
+    private val driversMap      = mutableMapOf<String, Map<String, Any?>>()
+    private val favouriteDriverIds = mutableSetOf<String>()
     private lateinit var adapter: MyOrdersAdapter
 
     private val acctId get() = SessionManager.getAcctId(this)
@@ -65,15 +62,16 @@ class CustomerOrdersActivity : AppCompatActivity() {
         findViewById<ImageView>(R.id.btnBackOrders).setOnClickListener { finish() }
 
         adapter = MyOrdersAdapter(
-            orders            = ordersList,
-            drivers           = driversMap,
-            orderIds          = orderIds,
-            onItemClick       = { pos -> navigateToDetail(pos) },
-            onConfirmDelivery = { pos -> showConfirmDeliveryDialog(pos) },
-            onRateDriver      = { pos -> showRateDriverDialog(pos) },
-            onReorder         = { pos -> reorder(pos) },
-            onReportDriver    = { pos -> showReportDialog(pos) },
-            onFavDriver       = { pos -> toggleFavDriver(pos) }
+            orders             = ordersList,
+            drivers            = driversMap,
+            orderIds           = orderIds,
+            favouriteDriverIds = favouriteDriverIds,
+            onItemClick        = { pos -> navigateToDetail(pos) },
+            onConfirmDelivery  = { pos -> showConfirmDeliveryDialog(pos) },
+            onRateDriver       = { pos -> showRateDriverDialog(pos) },
+            onReorder          = { pos -> reorder(pos) },
+            onReportDriver     = { pos -> showReportDialog(pos) },
+            onFavDriver        = { pos -> toggleFavDriver(pos) }
         )
         recycler.layoutManager = LinearLayoutManager(this)
         recycler.adapter = adapter
@@ -133,92 +131,83 @@ class CustomerOrdersActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        val userIdLong = SessionManager.getUserId(this)
-        val userId = userIdLong.toString()
+        val userId       = SessionManager.getUserId(this)
         val recycler     = findViewById<RecyclerView>(R.id.recyclerMyOrders)
         val textNoOrders = findViewById<TextView>(R.id.textNoMyOrders)
 
-        if (userId == "0") {
+        if (userId.isEmpty()) {
             textNoOrders.visibility = View.VISIBLE
             recycler.visibility     = View.GONE
             return
         }
 
-        fun rebuildList() {
-            val hidden = getHiddenOrders()
-            val merged = ordersByStrId + ordersByLongId
-            val sorted = merged.entries
-                .filter { (id, _) -> id !in hidden }
-                .sortedByDescending { (_, data) ->
-                    (data["Book_CreatedAt"] as? com.google.firebase.Timestamp)?.toDate()?.time ?: 0L
-                }
-            ordersList.clear()
-            orderIds.clear()
-            val driverIdsToFetch = mutableSetOf<String>()
-            sorted.forEach { (id, data) ->
-                ordersList.add(data)
-                orderIds.add(id)
-                val dId = data["Book_DrvrID"]?.toString()
-                if (!dId.isNullOrEmpty() && dId != "null" && !driversMap.containsKey(dId)) {
-                    driverIdsToFetch.add(dId)
-                }
+        // Load customer's favourite driver IDs so stars render correctly
+        firestore.collection("customer").document(userId).get()
+            .addOnSuccessListener { doc ->
+                @Suppress("UNCHECKED_CAST")
+                val favList = doc.get("Cust_FavouriteDrivers") as? List<*>
+                favouriteDriverIds.clear()
+                favList?.mapNotNull { it?.toString() }?.let { favouriteDriverIds.addAll(it) }
+                adapter.notifyDataSetChanged()
             }
-            adapter.notifyDataSetChanged()
-            driverIdsToFetch.forEach { dId ->
-                firestore.collection("driver").document(dId).get().addOnSuccessListener { dDoc ->
-                    if (dDoc.exists() && dDoc.data != null) {
-                        val driverData = dDoc.data!!.toMutableMap()
-                        driversMap[dId] = driverData
-                        adapter.notifyDataSetChanged()
-                        // Fetch vehicle plate number separately
-                        val vehicleId = dDoc.get("Drvr_VehicleID")?.toString()
-                        if (!vehicleId.isNullOrEmpty() && vehicleId != "null") {
-                            firestore.collection("vehicle").document(vehicleId).get()
-                                .addOnSuccessListener { vDoc ->
-                                    val plate = vDoc.getString("Vhcl_PlateNumber")
-                                    if (!plate.isNullOrEmpty()) {
-                                        driverData["_VhclPlateNumber"] = plate
-                                        adapter.notifyDataSetChanged()
-                                    }
-                                }
-                        }
-                    }
-                }
-            }
-            if (ordersList.isEmpty()) {
-                textNoOrders.visibility = View.VISIBLE
-                recycler.visibility     = View.GONE
-            } else {
-                textNoOrders.visibility = View.GONE
-                recycler.visibility     = View.VISIBLE
-            }
-        }
 
-        // Two separate listeners: Firestore SDK rejects whereIn with mixed String+Long types.
-        ordersListenerStr = firestore.collection("booking")
+        ordersListener = firestore.collection("booking")
             .whereEqualTo("Book_CustID", userId)
             .addSnapshotListener { snap, error ->
                 if (error != null) { Toast.makeText(this, "Sync error: ${error.message}", Toast.LENGTH_SHORT).show(); return@addSnapshotListener }
-                ordersByStrId.clear()
-                snap?.documents?.forEach { doc -> doc.data?.let { ordersByStrId[doc.id] = it } }
-                rebuildList()
-            }
-
-        ordersListenerLong = firestore.collection("booking")
-            .whereEqualTo("Book_CustID", userIdLong)
-            .addSnapshotListener { snap, error ->
-                if (error != null) return@addSnapshotListener
-                ordersByLongId.clear()
-                snap?.documents?.forEach { doc -> doc.data?.let { ordersByLongId[doc.id] = it } }
-                rebuildList()
+                val hidden = getHiddenOrders()
+                val allDocs = snap?.documents?.filter { it.id !in hidden } ?: emptyList()
+                val sorted  = allDocs.sortedByDescending { doc ->
+                    (doc.data?.get("Book_CreatedAt") as? com.google.firebase.Timestamp)?.toDate()?.time ?: 0L
+                }
+                ordersList.clear()
+                orderIds.clear()
+                val driverIdsToFetch = mutableSetOf<String>()
+                sorted.forEach { doc ->
+                    doc.data?.let { data ->
+                        ordersList.add(data)
+                        orderIds.add(doc.id)
+                        val dId = data["Book_DrvrID"]?.toString()
+                        if (!dId.isNullOrEmpty() && dId != "null" && !driversMap.containsKey(dId)) {
+                            driverIdsToFetch.add(dId)
+                        }
+                    }
+                }
+                adapter.notifyDataSetChanged()
+                driverIdsToFetch.forEach { dId ->
+                    firestore.collection("driver").document(dId).get().addOnSuccessListener { dDoc ->
+                        if (dDoc.exists() && dDoc.data != null) {
+                            val driverData = dDoc.data!!.toMutableMap()
+                            driversMap[dId] = driverData
+                            adapter.notifyDataSetChanged()
+                            val vehicleId = dDoc.get("Drvr_VehicleID")?.toString()
+                            if (!vehicleId.isNullOrEmpty() && vehicleId != "null") {
+                                firestore.collection("vehicle").document(vehicleId).get()
+                                    .addOnSuccessListener { vDoc ->
+                                        val plate = vDoc.getString("Vhcl_PlateNumber")
+                                        if (!plate.isNullOrEmpty()) {
+                                            driverData["_VhclPlateNumber"] = plate
+                                            adapter.notifyDataSetChanged()
+                                        }
+                                    }
+                            }
+                        }
+                    }
+                }
+                if (ordersList.isEmpty()) {
+                    textNoOrders.visibility = View.VISIBLE
+                    recycler.visibility     = View.GONE
+                } else {
+                    textNoOrders.visibility = View.GONE
+                    recycler.visibility     = View.VISIBLE
+                }
             }
     }
 
     override fun onStop() {
         super.onStop()
-        ordersListenerStr?.remove();  ordersListenerStr  = null
-        ordersListenerLong?.remove(); ordersListenerLong = null
-        ordersByStrId.clear(); ordersByLongId.clear()
+        ordersListener?.remove()
+        ordersListener = null
     }
 
     private fun navigateToDetail(position: Int) {
@@ -250,8 +239,8 @@ class CustomerOrdersActivity : AppCompatActivity() {
 
     private fun showReportDialog(position: Int) {
         val order    = ordersList[position]
-        val driverId = order["Book_DrvrID"]?.toString()?.toIntOrNull() ?: 0
-        if (driverId == 0) {
+        val driverId = order["Book_DrvrID"]?.toString()?.takeIf { it.isNotEmpty() && it != "null" }
+        if (driverId.isNullOrEmpty()) {
             Toast.makeText(this, "No driver to report.", Toast.LENGTH_SHORT).show()
             return
         }
@@ -283,8 +272,8 @@ class CustomerOrdersActivity : AppCompatActivity() {
 
     private fun toggleFavDriver(position: Int) {
         val order    = ordersList[position]
-        val driverId = order["Book_DrvrID"]?.toString()?.toIntOrNull() ?: 0
-        if (driverId == 0) return
+        val driverId = order["Book_DrvrID"]?.toString()?.takeIf { it.isNotEmpty() && it != "null" }
+        if (driverId.isNullOrEmpty()) return
 
         AlertDialog.Builder(this)
             .setTitle("Driver Preference")
@@ -297,6 +286,12 @@ class CustomerOrdersActivity : AppCompatActivity() {
                             "blocked"    -> "Driver blocked 🚫"
                             else         -> "Preference removed"
                         }
+                        // Update local favourite set and refresh star icons
+                        when (status) {
+                            "favourited" -> favouriteDriverIds.add(driverId)
+                            else         -> favouriteDriverIds.remove(driverId)
+                        }
+                        adapter.notifyDataSetChanged()
                         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -371,8 +366,7 @@ class CustomerOrdersActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        ordersListenerStr?.remove()
-        ordersListenerLong?.remove()
+        ordersListener?.remove()
     }
 
     // ─── Adapter ─────────────────────────────────────────────────────────────
@@ -380,6 +374,7 @@ class CustomerOrdersActivity : AppCompatActivity() {
         private val orders: List<Map<String, Any?>>,
         private val drivers: Map<String, Map<String, Any?>>,
         private val orderIds: List<String>,
+        private val favouriteDriverIds: Set<String>,
         private val onItemClick: (Int) -> Unit,
         private val onConfirmDelivery: (Int) -> Unit,
         private val onRateDriver: (Int) -> Unit,
@@ -499,7 +494,7 @@ class CustomerOrdersActivity : AppCompatActivity() {
 
             // Secondary actions
             val showSecondary = bookStatus in listOf("delivered", "completed", "cancelled")
-            val hasDriver     = !driverId.isNullOrEmpty() && driverId != "0"
+            val hasDriver     = !driverId.isNullOrEmpty() && driverId != "null"
             holder.secondaryRow.visibility = if (showSecondary) View.VISIBLE else View.GONE
 
             if (showSecondary) {
@@ -510,6 +505,13 @@ class CustomerOrdersActivity : AppCompatActivity() {
                     holder.btnFav.visibility    = View.VISIBLE
                     holder.btnReport.setOnClickListener { onReportDriver(position) }
                     holder.btnFav.setOnClickListener    { onFavDriver(position) }
+
+                    // Tint star yellow if this driver is already favourited
+                    val isFav = !driverId.isNullOrEmpty() && favouriteDriverIds.contains(driverId)
+                    holder.btnFav.setColorFilter(
+                        if (isFav) android.graphics.Color.parseColor("#FFC107")
+                        else       android.graphics.Color.parseColor("#CCCCCC")
+                    )
                 } else {
                     holder.btnReport.visibility = View.GONE
                     holder.btnFav.visibility    = View.GONE

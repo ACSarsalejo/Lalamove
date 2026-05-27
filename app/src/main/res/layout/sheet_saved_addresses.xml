@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#1E1E1E"
+    android:paddingBottom="24dp">
+
+    <!-- Handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:background="#555555"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/sheetTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Saved Addresses"
+        android:textColor="#FFFFFF"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:paddingHorizontal="20dp"
+        android:paddingBottom="12dp" />
+
+    <TextView
+        android:id="@+id/sheetLoading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Loading…"
+        android:textColor="#888888"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:padding="32dp" />
+
+    <TextView
+        android:id="@+id/sheetEmptyText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No saved addresses.\nAdd some in Profile → Saved Addresses."
+        android:textColor="#888888"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:padding="32dp"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/sheetRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:nestedScrollingEnabled="false" />
+
+</LinearLayout>

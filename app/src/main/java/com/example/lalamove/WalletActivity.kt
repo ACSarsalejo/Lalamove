@@ -1,6 +1,5 @@
 package com.example.lalamove
 
-import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,7 +8,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import org.json.JSONArray
 import java.text.SimpleDateFormat
@@ -21,25 +19,54 @@ class WalletActivity : AppCompatActivity() {
     private lateinit var layoutTransactions: LinearLayout
     private lateinit var textNoTransactions: TextView
 
-    private var userId = 0L
-    private var role = "customer"
+    private lateinit var chipAll: TextView
+    private lateinit var chipEarnings: TextView
+    private lateinit var chipFee: TextView
+    private lateinit var chipWithdrawal: TextView
+
+    private var userId = ""
+    private var role   = "driver"
+
+    private var allTransactions: JSONArray = JSONArray()
+    private var currentFilter = "all"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_wallet)
 
         userId = SessionManager.getUserId(this)
-        role   = SessionManager.getRole(this) ?: "customer"
+        role   = SessionManager.getRole(this) ?: "driver"
 
         textBalance        = findViewById(R.id.textWalletBalance)
         layoutTransactions = findViewById(R.id.layoutTransactions)
         textNoTransactions = findViewById(R.id.textNoTransactions)
 
+        chipAll        = findViewById(R.id.chipAll)
+        chipEarnings   = findViewById(R.id.chipEarnings)
+        chipFee        = findViewById(R.id.chipFee)
+        chipWithdrawal = findViewById(R.id.chipWithdrawal)
+
+        val chips = listOf(
+            chipAll        to "all",
+            chipEarnings   to "earnings",
+            chipFee        to "platform_fee",
+            chipWithdrawal to "withdrawal"
+        )
+        chips.forEach { (chip, filter) ->
+            chip.setOnClickListener {
+                currentFilter = filter
+                chips.forEach { (c, _) -> setChipInactive(c) }
+                setChipActive(chip)
+                renderTransactions(filtered())
+            }
+        }
+
+        // Coupons card not relevant for drivers — hide it
+        findViewById<View>(R.id.cardCoupons)?.visibility = View.GONE
+
         findViewById<View>(R.id.btnBackWallet).setOnClickListener { finish() }
         findViewById<MaterialButton>(R.id.btnTopUp).setOnClickListener { showTopUpDialog() }
-        findViewById<View>(R.id.cardCoupons).setOnClickListener {
-            startActivity(Intent(this, CouponsActivity::class.java))
-        }
+        findViewById<MaterialButton>(R.id.btnWithdraw).setOnClickListener { showWithdrawDialog() }
 
         loadBalance()
         loadTransactions()
@@ -51,6 +78,20 @@ class WalletActivity : AppCompatActivity() {
         loadTransactions()
     }
 
+    // ── Chip helpers ──────────────────────────────────────────────────────────
+
+    private fun setChipActive(chip: TextView) {
+        chip.background = resources.getDrawable(R.drawable.chip_active_bg, theme)
+        chip.setTextColor(Color.WHITE)
+    }
+
+    private fun setChipInactive(chip: TextView) {
+        chip.background = resources.getDrawable(R.drawable.chip_inactive_bg, theme)
+        chip.setTextColor(Color.parseColor("#888888"))
+    }
+
+    // ── Data ──────────────────────────────────────────────────────────────────
+
     private fun loadBalance() {
         ApiClient.walletBalance(userId, role) { balance ->
             textBalance.text = if (balance != null) "₱${String.format("%,.2f", balance)}" else "₱0.00"
@@ -59,16 +100,36 @@ class WalletActivity : AppCompatActivity() {
 
     private fun loadTransactions() {
         ApiClient.walletTransactions(userId, role) { arr ->
-            renderTransactions(arr)
+            allTransactions = arr ?: JSONArray()
+            renderTransactions(filtered())
         }
     }
 
-    private fun renderTransactions(arr: JSONArray?) {
-        // Remove all transaction rows (keep the "no transactions" view)
+    private fun filtered(): JSONArray {
+        if (currentFilter == "all") return allTransactions
+        val out = JSONArray()
+        for (i in 0 until allTransactions.length()) {
+            val t    = allTransactions.getJSONObject(i)
+            val type = t.optString("Tran_Type", "")
+            val desc = t.optString("Tran_Description", "")
+            val match = when (currentFilter) {
+                "earnings"     -> type == "earnings"
+                "platform_fee" -> type == "platform_fee"
+                "withdrawal"   -> type == "deduction" && desc.contains("Withdrawal", ignoreCase = true)
+                else           -> true
+            }
+            if (match) out.put(t)
+        }
+        return out
+    }
+
+    // ── Render ────────────────────────────────────────────────────────────────
+
+    private fun renderTransactions(arr: JSONArray) {
         val childCount = layoutTransactions.childCount
         if (childCount > 1) layoutTransactions.removeViews(1, childCount - 1)
 
-        if (arr == null || arr.length() == 0) {
+        if (arr.length() == 0) {
             textNoTransactions.visibility = View.VISIBLE
             return
         }
@@ -78,33 +139,32 @@ class WalletActivity : AppCompatActivity() {
         val outFmt = SimpleDateFormat("MMM d, h:mm a", Locale.getDefault())
 
         val iconMap = mapOf(
-            "topup"        to ("💳" to "#D1FAE5"),
-            "payment"      to ("🛍️" to "#FEF3C7"),
-            "earnings"     to ("💰" to "#D1FAE5"),
-            "refund"       to ("↩️" to "#D1FAE5"),
-            "deduction"    to ("➖" to "#FEF2F2"),
-            "platform_fee" to ("🏷️" to "#FEF2F2")
+            "topup"        to ("💳" to "#1B5E20"),
+            "payment"      to ("🛍️" to "#4A3000"),
+            "earnings"     to ("💰" to "#1B5E20"),
+            "refund"       to ("↩️" to "#1B5E20"),
+            "deduction"    to ("🏦" to "#5C0000"),
+            "platform_fee" to ("🏷️" to "#5C0000")
         )
         val creditTypes = setOf("topup", "earnings", "refund")
 
         for (i in 0 until arr.length()) {
-            val t = arr.getJSONObject(i)
-            val type   = t.optString("Tran_Type", "payment")
-            val amount = t.optDouble("Tran_Amount", 0.0)
-            val desc   = t.optString("Tran_Description", type.replaceFirstChar { it.uppercase() })
-            val ref    = t.optString("Tran_ReferenceNum", "")
+            val t       = arr.getJSONObject(i)
+            val type    = t.optString("Tran_Type", "payment")
+            val amount  = t.optDouble("Tran_Amount", 0.0)
+            val desc    = t.optString("Tran_Description", type.replaceFirstChar { it.uppercase() })
+            val ref     = t.optString("Tran_ReferenceNum", "")
             val dateStr = t.optString("Tran_Date", "")
 
             val row = LayoutInflater.from(this).inflate(R.layout.item_transaction, layoutTransactions, false)
 
-            val (emoji, bgHex) = iconMap[type] ?: ("📄" to "#F0F0F0")
+            val (emoji, bgHex) = iconMap[type] ?: ("📄" to "#2A2A2A")
             val iconView = row.findViewById<TextView>(R.id.txnIcon)
             iconView.text = emoji
-            val ovalBg = android.graphics.drawable.GradientDrawable().apply {
+            iconView.background = android.graphics.drawable.GradientDrawable().apply {
                 shape = android.graphics.drawable.GradientDrawable.OVAL
                 setColor(Color.parseColor(bgHex))
             }
-            iconView.background = ovalBg
 
             row.findViewById<TextView>(R.id.txnDesc).text = desc
             val refView = row.findViewById<TextView>(R.id.txnRef)
@@ -112,38 +172,86 @@ class WalletActivity : AppCompatActivity() {
             else refView.visibility = View.GONE
 
             val isCredit = type in creditTypes
-            val sign = if (isCredit) "+" else "-"
-            val amtColor = if (isCredit) Color.parseColor("#059669") else Color.parseColor("#DC2626")
-            val amtView = row.findViewById<TextView>(R.id.txnAmount)
-            amtView.text = "$sign₱${String.format("%,.2f", amount)}"
-            amtView.setTextColor(amtColor)
+            val amtView  = row.findViewById<TextView>(R.id.txnAmount)
+            amtView.text = "${if (isCredit) "+" else "-"}₱${String.format("%,.2f", amount)}"
+            amtView.setTextColor(if (isCredit) Color.parseColor("#4CAF50") else Color.parseColor("#F44336"))
 
             val dateView = row.findViewById<TextView>(R.id.txnDate)
             dateView.text = try { outFmt.format(inFmt.parse(dateStr)!!) } catch (e: Exception) { dateStr }
 
-            // Divider between rows
             if (i > 0) {
                 val divider = View(this).apply {
                     layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
-                    setBackgroundColor(Color.parseColor("#F0EEEB"))
+                    setBackgroundColor(Color.parseColor("#2C2C2C"))
                 }
                 layoutTransactions.addView(divider)
             }
-
             layoutTransactions.addView(row)
         }
     }
 
+    // ── Withdraw dialog ───────────────────────────────────────────────────────
+
+    private fun showWithdrawDialog() {
+        val currentBalance = textBalance.text.toString()
+            .replace("₱", "").replace(",", "").trim().toDoubleOrNull() ?: 0.0
+
+        if (currentBalance <= 0) {
+            Toast.makeText(this, "No balance to withdraw.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val input = android.widget.EditText(this).apply {
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+            hint = "Enter amount"
+            setTextColor(android.graphics.Color.WHITE)
+            setHintTextColor(android.graphics.Color.parseColor("#888888"))
+            setText(String.format("%.2f", currentBalance))
+            setPadding(48, 32, 48, 32)
+        }
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Withdraw Funds")
+            .setMessage("Available: ₱${String.format("%,.2f", currentBalance)}\nWithdrawals are processed in 2–3 business days.")
+            .setView(input)
+            .setPositiveButton("Withdraw") { _, _ ->
+                val amount = input.text.toString().toDoubleOrNull()
+                when {
+                    amount == null || amount <= 0 ->
+                        Toast.makeText(this, "Enter a valid amount.", Toast.LENGTH_SHORT).show()
+                    amount > currentBalance ->
+                        Toast.makeText(this, "Insufficient balance.", Toast.LENGTH_SHORT).show()
+                    else -> {
+                        ApiClient.walletCashOut(userId, role, amount) { success, newBalance, msg ->
+                            if (success) {
+                                textBalance.text = "₱${String.format("%,.2f", newBalance)}"
+                                Toast.makeText(this,
+                                    "✅ Withdrawal of ₱${String.format("%,.2f", amount)} submitted! Ref: $msg",
+                                    Toast.LENGTH_LONG).show()
+                                loadTransactions()
+                            } else {
+                                Toast.makeText(this, msg.ifEmpty { "Withdrawal failed." }, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    // ── Top-up dialog ─────────────────────────────────────────────────────────
+
     private fun showTopUpDialog() {
-        val dialog = BottomSheetDialog(this)
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_top_up, null)
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val view   = LayoutInflater.from(this).inflate(R.layout.dialog_top_up, null)
         dialog.setContentView(view)
 
-        var selectedMethod = ""
+        var selectedMethod = "gcash"
 
-        val cardGcash  = view.findViewById<LinearLayout>(R.id.cardGcash)
-        val cardMaya   = view.findViewById<LinearLayout>(R.id.cardMaya)
-        val cardVisa   = view.findViewById<LinearLayout>(R.id.cardVisa)
+        val cardGcash   = view.findViewById<LinearLayout>(R.id.cardGcash)
+        val cardMaya    = view.findViewById<LinearLayout>(R.id.cardMaya)
+        val cardVisa    = view.findViewById<LinearLayout>(R.id.cardVisa)
         val inputAmount = view.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.inputCustomAmount)
         val btnConfirm  = view.findViewById<MaterialButton>(R.id.btnConfirmTopUp)
 
@@ -154,19 +262,13 @@ class WalletActivity : AppCompatActivity() {
         )
 
         fun selectMethod(selected: LinearLayout, method: String) {
-            methodCards.forEach { (card, _, _) ->
-                card.background = resources.getDrawable(R.drawable.method_card_bg, theme)
-            }
+            methodCards.forEach { (card, _, _) -> card.background = resources.getDrawable(R.drawable.method_card_bg, theme) }
             selected.background = resources.getDrawable(R.drawable.method_card_bg_selected, theme)
             selectedMethod = method
         }
 
-        // Default: select GCash
         selectMethod(cardGcash, "gcash")
-
-        methodCards.forEach { (card, method, _) ->
-            card.setOnClickListener { selectMethod(card, method) }
-        }
+        methodCards.forEach { (card, method, _) -> card.setOnClickListener { selectMethod(card, method) } }
 
         val presets = listOf(
             view.findViewById<MaterialButton>(R.id.preset100)  to 100.0,
@@ -186,7 +288,7 @@ class WalletActivity : AppCompatActivity() {
         presets.forEach { (btn, amount) ->
             btn.setOnClickListener {
                 clearPresets()
-                btn.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#F15A22"))
+                btn.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#FF6B00"))
                 btn.setTextColor(Color.WHITE)
                 inputAmount.setText(amount.toInt().toString())
             }

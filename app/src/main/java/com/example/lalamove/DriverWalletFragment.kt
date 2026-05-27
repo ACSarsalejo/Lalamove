@@ -21,6 +21,14 @@ class DriverWalletFragment : Fragment() {
     private lateinit var layoutTransactions: LinearLayout
     private lateinit var textNoTransactions: TextView
 
+    private lateinit var chipAll: TextView
+    private lateinit var chipEarnings: TextView
+    private lateinit var chipFee: TextView
+    private lateinit var chipWithdrawal: TextView
+
+    private var allTransactions = JSONArray()
+    private var currentFilter   = "all"
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         inflater.inflate(R.layout.fragment_driver_wallet, container, false)
 
@@ -30,8 +38,28 @@ class DriverWalletFragment : Fragment() {
         textBalance        = view.findViewById(R.id.textWalletBalance)
         layoutTransactions = view.findViewById(R.id.layoutTransactions)
         textNoTransactions = view.findViewById(R.id.textNoTransactions)
+        chipAll            = view.findViewById(R.id.chipAll)
+        chipEarnings       = view.findViewById(R.id.chipEarnings)
+        chipFee            = view.findViewById(R.id.chipFee)
+        chipWithdrawal     = view.findViewById(R.id.chipWithdrawal)
+
+        val chips = listOf(
+            chipAll        to "all",
+            chipEarnings   to "earnings",
+            chipFee        to "platform_fee",
+            chipWithdrawal to "withdrawal"
+        )
+        chips.forEach { (chip, filter) ->
+            chip.setOnClickListener {
+                currentFilter = filter
+                chips.forEach { (c, _) -> setChipInactive(c) }
+                setChipActive(chip)
+                renderTransactions(filtered())
+            }
+        }
 
         view.findViewById<MaterialButton>(R.id.btnTopUp).setOnClickListener { showTopUpDialog() }
+        view.findViewById<MaterialButton>(R.id.btnWithdraw).setOnClickListener { showWithdrawDialog() }
 
         loadBalance()
         loadTransactions()
@@ -42,6 +70,20 @@ class DriverWalletFragment : Fragment() {
         loadBalance()
         loadTransactions()
     }
+
+    // ── Chip helpers ──────────────────────────────────────────────────────────
+
+    private fun setChipActive(chip: TextView) {
+        chip.background = resources.getDrawable(R.drawable.chip_active_bg, requireActivity().theme)
+        chip.setTextColor(Color.WHITE)
+    }
+
+    private fun setChipInactive(chip: TextView) {
+        chip.background = resources.getDrawable(R.drawable.chip_inactive_bg, requireActivity().theme)
+        chip.setTextColor(Color.parseColor("#888888"))
+    }
+
+    // ── Data ──────────────────────────────────────────────────────────────────
 
     private fun userId() = SessionManager.getUserId(requireContext())
     private fun role()   = SessionManager.getRole(requireContext()) ?: "driver"
@@ -56,14 +98,35 @@ class DriverWalletFragment : Fragment() {
     private fun loadTransactions() {
         ApiClient.walletTransactions(userId(), role()) { arr ->
             if (!isAdded) return@walletTransactions
-            renderTransactions(arr)
+            allTransactions = arr ?: JSONArray()
+            renderTransactions(filtered())
         }
     }
 
-    private fun renderTransactions(arr: JSONArray?) {
+    private fun filtered(): JSONArray {
+        if (currentFilter == "all") return allTransactions
+        val out = JSONArray()
+        for (i in 0 until allTransactions.length()) {
+            val t    = allTransactions.getJSONObject(i)
+            val type = t.optString("Tran_Type", "")
+            val desc = t.optString("Tran_Description", "")
+            val match = when (currentFilter) {
+                "earnings"     -> type == "earnings"
+                "platform_fee" -> type == "platform_fee"
+                "withdrawal"   -> type == "deduction" && desc.contains("Withdrawal", ignoreCase = true)
+                else           -> true
+            }
+            if (match) out.put(t)
+        }
+        return out
+    }
+
+    // ── Render ────────────────────────────────────────────────────────────────
+
+    private fun renderTransactions(arr: JSONArray) {
         layoutTransactions.removeAllViews()
 
-        if (arr == null || arr.length() == 0) {
+        if (arr.length() == 0) {
             textNoTransactions.visibility = View.VISIBLE
             return
         }
@@ -73,12 +136,12 @@ class DriverWalletFragment : Fragment() {
         val outFmt = SimpleDateFormat("MMM d, h:mm a", Locale.getDefault())
 
         val iconMap = mapOf(
-            "topup"        to ("💳" to "#D1FAE5"),
-            "payment"      to ("🛍️" to "#FEF3C7"),
-            "earnings"     to ("💰" to "#D1FAE5"),
-            "refund"       to ("↩️" to "#D1FAE5"),
-            "deduction"    to ("➖" to "#FEF2F2"),
-            "platform_fee" to ("🏷️" to "#FEF2F2")
+            "topup"        to ("💳" to "#1B5E20"),
+            "payment"      to ("🛍️" to "#4A3000"),
+            "earnings"     to ("💰" to "#1B5E20"),
+            "refund"       to ("↩️" to "#1B5E20"),
+            "deduction"    to ("🏦" to "#5C0000"),
+            "platform_fee" to ("🏷️" to "#5C0000")
         )
         val creditTypes = setOf("topup", "earnings", "refund")
 
@@ -93,14 +156,14 @@ class DriverWalletFragment : Fragment() {
             if (i > 0) {
                 val divider = View(requireContext()).apply {
                     layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
-                    setBackgroundColor(Color.parseColor("#F0EEEB"))
+                    setBackgroundColor(Color.parseColor("#2C2C2C"))
                 }
                 layoutTransactions.addView(divider)
             }
 
             val row = LayoutInflater.from(requireContext()).inflate(R.layout.item_transaction, layoutTransactions, false)
 
-            val (emoji, bgHex) = iconMap[type] ?: ("📄" to "#F0F0F0")
+            val (emoji, bgHex) = iconMap[type] ?: ("📄" to "#2A2A2A")
             val iconView = row.findViewById<TextView>(R.id.txnIcon)
             iconView.text = emoji
             iconView.background = android.graphics.drawable.GradientDrawable().apply {
@@ -116,7 +179,7 @@ class DriverWalletFragment : Fragment() {
             val isCredit = type in creditTypes
             val amtView  = row.findViewById<TextView>(R.id.txnAmount)
             amtView.text = "${if (isCredit) "+" else "-"}₱${String.format("%,.2f", amount)}"
-            amtView.setTextColor(if (isCredit) Color.parseColor("#059669") else Color.parseColor("#DC2626"))
+            amtView.setTextColor(if (isCredit) Color.parseColor("#4CAF50") else Color.parseColor("#F44336"))
 
             val dateView = row.findViewById<TextView>(R.id.txnDate)
             dateView.text = try { outFmt.format(inFmt.parse(dateStr)!!) } catch (e: Exception) { dateStr }
@@ -124,6 +187,61 @@ class DriverWalletFragment : Fragment() {
             layoutTransactions.addView(row)
         }
     }
+
+    // ── Withdraw dialog ───────────────────────────────────────────────────────
+
+    private fun showWithdrawDialog() {
+        val currentBalance = textBalance.text.toString()
+            .replace("₱", "").replace(",", "").trim().toDoubleOrNull() ?: 0.0
+
+        if (currentBalance <= 0) {
+            Toast.makeText(requireContext(), "No balance to withdraw.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val input = android.widget.EditText(requireContext()).apply {
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+            hint = "Enter amount"
+            setTextColor(android.graphics.Color.WHITE)
+            setHintTextColor(android.graphics.Color.parseColor("#888888"))
+            setText(String.format("%.2f", currentBalance))
+            setPadding(48, 32, 48, 32)
+        }
+
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Withdraw Funds")
+            .setMessage("Available: ₱${String.format("%,.2f", currentBalance)}\nWithdrawals are processed in 2–3 business days.")
+            .setView(input)
+            .setPositiveButton("Withdraw") { _, _ ->
+                val amount = input.text.toString().toDoubleOrNull()
+                when {
+                    amount == null || amount <= 0 ->
+                        Toast.makeText(requireContext(), "Enter a valid amount.", Toast.LENGTH_SHORT).show()
+                    amount > currentBalance ->
+                        Toast.makeText(requireContext(), "Insufficient balance.", Toast.LENGTH_SHORT).show()
+                    else -> {
+                        ApiClient.walletCashOut(userId(), role(), amount) { success, newBalance, msg ->
+                            if (!isAdded) return@walletCashOut
+                            if (success) {
+                                textBalance.text = "₱${String.format("%,.2f", newBalance)}"
+                                Toast.makeText(
+                                    requireContext(),
+                                    "✅ ₱${String.format("%,.2f", amount)} withdrawal submitted! Ref: $msg",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                loadTransactions()
+                            } else {
+                                Toast.makeText(requireContext(), msg.ifEmpty { "Withdrawal failed." }, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    // ── Top-up dialog ─────────────────────────────────────────────────────────
 
     private fun showTopUpDialog() {
         val dialog = BottomSheetDialog(requireContext())

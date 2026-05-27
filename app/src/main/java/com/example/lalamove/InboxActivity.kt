@@ -21,10 +21,7 @@ class InboxActivity : AppCompatActivity() {
     private lateinit var tabDivider: View
 
     private lateinit var firestore: FirebaseFirestore
-    private var ordersListenerStr:  ListenerRegistration? = null
-    private var ordersListenerLong: ListenerRegistration? = null
-    private val notifsByStrId  = mutableMapOf<String, com.google.firebase.firestore.DocumentSnapshot>()
-    private val notifsByLongId = mutableMapOf<String, com.google.firebase.firestore.DocumentSnapshot>()
+    private var ordersListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,43 +45,26 @@ class InboxActivity : AppCompatActivity() {
     }
 
     private fun loadNotifications() {
-        val userIdLong = SessionManager.getUserId(this)
-        val userId = userIdLong.toString()
+        val userId = SessionManager.getUserId(this)
 
-        fun rebuildNotifs() {
-            val merged = notifsByStrId + notifsByLongId
-            val sorted = merged.values.sortedByDescending { it.getDate("Book_CreatedAt") }
-            notificationsContent.removeAllViews()
-            if (sorted.isEmpty()) {
-                notificationsContent.addView(makeEmptyLabel("No order notifications yet"))
-            } else {
-                sorted.forEach { doc ->
-                    val data    = doc.data ?: return@forEach
-                    val status  = data["Book_Status"]?.toString() ?: "pending"
-                    val pickup  = data["Book_Pickuploc"]?.toString() ?: "—"
-                    val dropoff = data["Book_Dropoffloc"]?.toString() ?: "—"
-                    notificationsContent.addView(makeNotifCard(status, pickup, dropoff))
-                }
-            }
-        }
-
-        // Two separate listeners: Firestore SDK rejects whereIn with mixed String+Long types.
-        ordersListenerStr = firestore.collection("booking")
+        ordersListener = firestore.collection("booking")
             .whereEqualTo("Book_CustID", userId)
             .addSnapshotListener { snap, error ->
                 if (error != null) return@addSnapshotListener
-                notifsByStrId.clear()
-                snap?.documents?.forEach { notifsByStrId[it.id] = it }
-                rebuildNotifs()
-            }
-
-        ordersListenerLong = firestore.collection("booking")
-            .whereEqualTo("Book_CustID", userIdLong)
-            .addSnapshotListener { snap, error ->
-                if (error != null) return@addSnapshotListener
-                notifsByLongId.clear()
-                snap?.documents?.forEach { notifsByLongId[it.id] = it }
-                rebuildNotifs()
+                val sorted = (snap?.documents ?: emptyList())
+                    .sortedByDescending { it.getDate("Book_CreatedAt") }
+                notificationsContent.removeAllViews()
+                if (sorted.isEmpty()) {
+                    notificationsContent.addView(makeEmptyLabel("No order notifications yet"))
+                } else {
+                    sorted.forEach { doc ->
+                        val data    = doc.data ?: return@forEach
+                        val status  = data["Book_Status"]?.toString() ?: "pending"
+                        val pickup  = data["Book_Pickuploc"]?.toString() ?: "—"
+                        val dropoff = data["Book_Dropoffloc"]?.toString() ?: "—"
+                        notificationsContent.addView(makeNotifCard(status, pickup, dropoff))
+                    }
+                }
             }
     }
 
@@ -283,7 +263,6 @@ class InboxActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        ordersListenerStr?.remove()
-        ordersListenerLong?.remove()
+        ordersListener?.remove()
     }
 }

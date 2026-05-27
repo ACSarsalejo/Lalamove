@@ -22,7 +22,7 @@ class CouponsActivity : AppCompatActivity() {
     private val coupons = mutableListOf<JSONObject>()
     private lateinit var adapter: CouponAdapter
 
-    private var userId = 0L
+    private var userId = ""
     private var fare = 0.0
     private var isSelectionMode = false
 

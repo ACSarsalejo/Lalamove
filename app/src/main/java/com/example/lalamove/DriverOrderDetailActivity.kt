@@ -62,7 +62,7 @@ class DriverOrderDetailActivity : AppCompatActivity() {
             btnTakeOrder.isEnabled = false
             btnTakeOrder.text = "Taking order..."
 
-            val driverId = SessionManager.getUserId(this@DriverOrderDetailActivity).toString()
+            val driverId = SessionManager.getUserId(this@DriverOrderDetailActivity)
 
             // Update booking status and assign driver
             firestore.collection("booking").document(orderId)
@@ -73,7 +73,6 @@ class DriverOrderDetailActivity : AppCompatActivity() {
                     )
                 )
                 .addOnSuccessListener {
-                    ApiClient.triggerSync()
                     Toast.makeText(this, "Order accepted!", Toast.LENGTH_SHORT).show()
                     // Navigate to Active Delivery screen
                     val intent = Intent(this, DriverActiveDeliveryActivity::class.java).apply {

@@ -64,9 +64,9 @@ class SavedAddressesActivity : AppCompatActivity() {
         val radioGroup   = view.findViewById<RadioGroup>(R.id.radioAddrType)
 
         if (existing != null) {
-            inputLabel.setText(existing.optString("Addr_Label"))
-            inputAddress.setText(existing.optString("Addr_Address"))
-            when (existing.optString("Addr_Type", "other")) {
+            inputLabel.setText(existing.optString("label"))
+            inputAddress.setText(existing.optString("address"))
+            when (existing.optString("type", "other")) {
                 "home" -> radioGroup.check(R.id.radioHome)
                 "work" -> radioGroup.check(R.id.radioWork)
                 else   -> radioGroup.check(R.id.radioOther)
@@ -96,7 +96,7 @@ class SavedAddressesActivity : AppCompatActivity() {
                         else Toast.makeText(this, "Failed to save address.", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    ApiClient.updateAddress(acctId, existing.optInt("Addr_ID"), label, address, type) { success ->
+                    ApiClient.updateAddress(acctId, existing.optString("addr_id"), label, address, type) { success ->
                         if (success) { loadAddresses(); Toast.makeText(this, "Address updated!", Toast.LENGTH_SHORT).show() }
                         else Toast.makeText(this, "Failed to update address.", Toast.LENGTH_SHORT).show()
                     }
@@ -119,9 +119,9 @@ class SavedAddressesActivity : AppCompatActivity() {
 
         override fun onBindViewHolder(holder: VH, position: Int) {
             val addr  = addresses[position]
-            val label = addr.optString("Addr_Label", "Address")
-            val text  = addr.optString("Addr_Address", "")
-            val type  = addr.optString("Addr_Type", "other")
+            val label = addr.optString("label", "Address")
+            val text  = addr.optString("address", "")
+            val type  = addr.optString("type", "other")
 
             val iconRes = when (type) { "home" -> R.drawable.ic_home; "work" -> R.drawable.ic_work; else -> R.drawable.ic_location }
             holder.view.findViewById<ImageView>(R.id.addrTypeIcon).setImageResource(iconRes)
@@ -136,7 +136,7 @@ class SavedAddressesActivity : AppCompatActivity() {
                     .setTitle("Delete Address")
                     .setMessage("Remove \"$label\"?")
                     .setPositiveButton("Delete") { _, _ ->
-                        ApiClient.deleteAddress(acctId, addr.optInt("Addr_ID")) { success ->
+                        ApiClient.deleteAddress(acctId, addr.optString("addr_id")) { success ->
                             if (success) {
                                 addresses.removeAt(holder.adapterPosition)
                                 notifyItemRemoved(holder.adapterPosition)

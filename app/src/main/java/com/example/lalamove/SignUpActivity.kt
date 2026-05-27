@@ -9,8 +9,6 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 
 class SignUpActivity : AppCompatActivity() {
 
@@ -51,22 +49,9 @@ class SignUpActivity : AppCompatActivity() {
             val firstName = parts[0]
             val lastName  = if (parts.size > 1) parts[1] else ""
 
-            ApiClient.register(firstName, lastName, phone, email, password) { success, userId, acctId, error ->
-                if (success && userId != 0L) {
-                    // Sync new customer to Firestore so the Android app can find them
-                    FirebaseFirestore.getInstance()
-                        .collection("customer")
-                        .document(userId.toString())
-                        .set(mapOf(
-                            "Cust_ID"        to userId,
-                            "Cust_AcctId"    to acctId,
-                            "Cust_FirstName" to firstName,
-                            "Cust_LastName"  to lastName,
-                            "Cust_Phone"     to phone,
-                            "Cust_Email"     to email,
-                            "Cust_IsBanned"  to false
-                        ), SetOptions.merge())
-
+            // Firebase Auth creates the account; Firestore stores the profile
+            ApiClient.register(firstName, lastName, phone, email, password) { success, uid, error ->
+                if (success) {
                     val intent = Intent(this, LoginActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                     intent.putExtra("SIGNUP_SUCCESS", true)
@@ -85,9 +70,9 @@ class SignUpActivity : AppCompatActivity() {
     private fun validate(name: String, phone: String, email: String, password: String,
                          nl: TextInputLayout, pl: TextInputLayout, el: TextInputLayout, psl: TextInputLayout): Boolean {
         var v = true
-        if (name.isEmpty())     { nl.error  = "Required";    v = false } else nl.error  = null
-        if (phone.isEmpty())    { pl.error  = "Required";    v = false } else pl.error  = null
-        if (email.isEmpty())    { el.error  = "Required";    v = false } else el.error  = null
+        if (name.isEmpty())      { nl.error  = "Required";    v = false } else nl.error  = null
+        if (phone.isEmpty())     { pl.error  = "Required";    v = false } else pl.error  = null
+        if (email.isEmpty())     { el.error  = "Required";    v = false } else el.error  = null
         if (password.length < 6) { psl.error = "Min 6 chars"; v = false } else psl.error = null
         return v
     }

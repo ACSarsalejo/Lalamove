@@ -5,49 +5,44 @@
     android:id="@+id/settingsRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/gray_light">
+    android:background="#121212">
 
-    <!-- Orange header -->
+    <!-- Dark header -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:background="#FF6B00"
-        app:elevation="0dp">
+        android:layout_height="60dp"
+        android:background="#1A1A1A"
+        app:elevation="4dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingHorizontal="16dp"
-            android:paddingBottom="16dp">
+            android:paddingHorizontal="16dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_back"
+                app:tint="#FFFFFF"
+                android:padding="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless" />
 
-                <ImageView
-                    android:id="@+id/btnBack"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_back"
-                    app:tint="#FFFFFF"
-                    android:padding="4dp"
-                    android:background="?attr/selectableItemBackgroundBorderless" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Settings"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:gravity="center" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="Settings"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:layout_marginStart="12dp" />
+            <!-- Spacer to balance back button -->
+            <View android:layout_width="36dp" android:layout_height="36dp" />
 
-            </LinearLayout>
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -62,17 +57,17 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="16dp"
+            android:paddingTop="16dp"
             android:paddingBottom="32dp">
 
             <!-- ── Profile Photo ── -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="0dp"
                 android:layout_marginBottom="12dp"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="#FFFFFF">
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#1E1E1E">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -85,7 +80,6 @@
                         android:layout_width="84dp"
                         android:layout_height="84dp">
 
-                        <!-- Placeholder (shown when no photo) -->
                         <ImageView
                             android:id="@+id/profilePhoto"
                             android:layout_width="84dp"
@@ -93,7 +87,6 @@
                             android:src="@drawable/ic_profile_placeholder"
                             android:scaleType="centerCrop" />
 
-                        <!-- Keep profileInitials for code compat, hidden -->
                         <TextView
                             android:id="@+id/profileInitials"
                             android:layout_width="84dp"
@@ -113,15 +106,14 @@
                             android:background="@drawable/circle_orange"
                             android:padding="4dp"
                             app:tint="#FFFFFF" />
-
                     </FrameLayout>
 
                     <TextView
                         android:id="@+id/profileName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Customer Name"
-                        android:textColor="@color/text_primary"
+                        android:text="Your Name"
+                        android:textColor="#FFFFFF"
                         android:textSize="17sp"
                         android:textStyle="bold"
                         android:layout_marginTop="12dp" />
@@ -131,7 +123,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="email@example.com"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="#AAAAAA"
                         android:textSize="13sp"
                         android:layout_marginTop="2dp" />
 
@@ -144,8 +136,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="#FFFFFF">
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#1E1E1E">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -157,7 +149,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Edit Profile"
-                        android:textColor="@color/text_primary"
+                        android:textColor="#FFFFFF"
                         android:textSize="15sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="16dp" />
@@ -178,7 +170,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="textPersonName"
-                            android:textColor="@color/text_primary" />
+                            android:textColor="#FFFFFF" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -197,7 +189,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="textPersonName"
-                            android:textColor="@color/text_primary" />
+                            android:textColor="#FFFFFF" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -216,7 +208,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="phone"
-                            android:textColor="@color/text_primary" />
+                            android:textColor="#FFFFFF" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -235,7 +227,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="textEmailAddress"
-                            android:textColor="@color/text_primary" />
+                            android:textColor="#FFFFFF" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.button.MaterialButton
@@ -257,8 +249,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="#FFFFFF">
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#1E1E1E">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -270,7 +262,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Change Password"
-                        android:textColor="@color/text_primary"
+                        android:textColor="#FFFFFF"
                         android:textSize="15sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="16dp" />
@@ -292,7 +284,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="textPassword"
-                            android:textColor="@color/text_primary" />
+                            android:textColor="#FFFFFF" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -312,7 +304,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="textPassword"
-                            android:textColor="@color/text_primary" />
+                            android:textColor="#FFFFFF" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -332,7 +324,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="textPassword"
-                            android:textColor="@color/text_primary" />
+                            android:textColor="#FFFFFF" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.button.MaterialButton
@@ -354,8 +346,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="#FFFFFF">
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#1E1E1E">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -367,7 +359,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Notifications"
-                        android:textColor="@color/text_primary"
+                        android:textColor="#FFFFFF"
                         android:textSize="15sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="16dp" />
@@ -383,7 +375,7 @@
                             android:layout_weight="1"
                             android:layout_height="wrap_content"
                             android:text="Order status updates"
-                            android:textColor="@color/text_primary"
+                            android:textColor="#FFFFFF"
                             android:textSize="14sp" />
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switchOrderUpdates"
@@ -404,7 +396,7 @@
                             android:layout_weight="1"
                             android:layout_height="wrap_content"
                             android:text="Driver assigned alerts"
-                            android:textColor="@color/text_primary"
+                            android:textColor="#FFFFFF"
                             android:textSize="14sp" />
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switchDriverAlerts"
@@ -424,7 +416,7 @@
                             android:layout_weight="1"
                             android:layout_height="wrap_content"
                             android:text="Promotions &amp; offers"
-                            android:textColor="@color/text_primary"
+                            android:textColor="#FFFFFF"
                             android:textSize="14sp" />
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switchPromos"

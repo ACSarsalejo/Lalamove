@@ -28,7 +28,7 @@ class DeliveryFormActivity : AppCompatActivity() {
     private lateinit var emptyView: LinearLayout
 
     data class AddressItem(
-        val id: Int,
+        val id: String,
         val label: String,
         val address: String,
         val type: String
@@ -67,10 +67,10 @@ class DeliveryFormActivity : AppCompatActivity() {
                     val obj = arr.getJSONObject(i)
                     addressList.add(
                         AddressItem(
-                            id      = obj.optInt("Addr_ID"),
-                            label   = obj.optString("Addr_Label"),
-                            address = obj.optString("Addr_Address"),
-                            type    = obj.optString("Addr_Type", "other")
+                            id      = obj.optString("addr_id"),
+                            label   = obj.optString("label"),
+                            address = obj.optString("address"),
+                            type    = obj.optString("type", "other")
                         )
                     )
                 }

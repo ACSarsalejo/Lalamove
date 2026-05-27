@@ -5,46 +5,309 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#121212"
-    android:gravity="center"
-    android:padding="24dp">
+    android:background="#121212">
 
-    <!-- Waiting icon -->
-    <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:src="@drawable/ic_time"
-        app:tint="#FF6B00"
-        android:layout_marginBottom="24dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Account Pending Verification"
-        android:textColor="#FFFFFF"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:textAlignment="center"
-        android:layout_marginBottom="16dp" />
-
-    <TextView
+    <!-- Header -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Your driver application is currently under review by our administration team. Please check back later."
-        android:textColor="#AAAAAA"
-        android:textSize="16sp"
-        android:textAlignment="center"
-        android:lineSpacingExtra="4dp"
-        android:layout_marginBottom="32dp" />
+        android:layout_height="60dp"
+        android:background="#1A1A1A"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+        android:elevation="4dp">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Application Status"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnLogoutPending"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="Log Out"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        app:cornerRadius="12dp"
-        android:backgroundTint="#FF6B00" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Clock icon + title -->
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/ic_time"
+                app:tint="#FF6B00"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="16dp"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Account Under Verification"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textAlignment="center"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Our team is reviewing your driver application. Below is a summary of the verification steps."
+                android:textColor="#888888"
+                android:textSize="14sp"
+                android:textAlignment="center"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="28dp" />
+
+            <!-- Step 1: Registration -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="14dp"
+                app:cardBackgroundColor="#1E1E1E"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="12dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="✅"
+                        android:textSize="22sp"
+                        android:gravity="center"
+                        android:layout_marginEnd="14dp" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Registration Submitted"
+                            android:textColor="#FFFFFF"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Your application has been received."
+                            android:textColor="#888888"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="DONE"
+                        android:textColor="#4CAF50"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Step 2: Identity Verification -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="14dp"
+                app:cardBackgroundColor="#1E1E1E"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="12dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="🪪"
+                        android:textSize="22sp"
+                        android:gravity="center"
+                        android:layout_marginEnd="14dp" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Identity Verification"
+                            android:textColor="#FFFFFF"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Admin is reviewing your government-issued ID."
+                            android:textColor="#888888"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+                    <TextView
+                        android:id="@+id/stepIdentityStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PENDING"
+                        android:textColor="#FF6B00"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Step 3: Vehicle Verification -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="14dp"
+                app:cardBackgroundColor="#1E1E1E"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="12dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="🚗"
+                        android:textSize="22sp"
+                        android:gravity="center"
+                        android:layout_marginEnd="14dp" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Vehicle Verification"
+                            android:textColor="#FFFFFF"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Admin is verifying your vehicle registration and OR/CR."
+                            android:textColor="#888888"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+                    <TextView
+                        android:id="@+id/stepVehicleStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PENDING"
+                        android:textColor="#FF6B00"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Step 4: Account Activation -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="14dp"
+                app:cardBackgroundColor="#1E1E1E"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="28dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="🔓"
+                        android:textSize="22sp"
+                        android:gravity="center"
+                        android:layout_marginEnd="14dp" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Account Activation"
+                            android:textColor="#FFFFFF"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Account will be activated once all steps are approved."
+                            android:textColor="#888888"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+                    <TextView
+                        android:id="@+id/stepActivationStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="WAITING"
+                        android:textColor="#555555"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Check status hint -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📧 You will receive a notification once your account is activated. This usually takes 1-3 business days."
+                android:textColor="#666666"
+                android:textSize="13sp"
+                android:textAlignment="center"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="24dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRefreshPending"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Refresh Status"
+                android:textColor="#FF6B00"
+                android:textSize="15sp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="#FF6B00"
+                app:cornerRadius="12dp"
+                android:backgroundTint="@android:color/transparent"
+                android:layout_marginBottom="12dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLogoutPending"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Log Out"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                app:cornerRadius="12dp"
+                android:backgroundTint="#2C2C2C" />
+
+        </LinearLayout>
+    </ScrollView>
 
 </LinearLayout>

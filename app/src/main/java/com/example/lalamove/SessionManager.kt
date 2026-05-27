@@ -4,22 +4,22 @@ import android.content.Context
 
 object SessionManager {
 
-    private const val PREFS = "ll_session"
-    private const val KEY_ROLE    = "role"
-    private const val KEY_ACCT_ID = "acct_id"
-    private const val KEY_USER_ID = "user_id"
-    private const val KEY_NAME    = "name"
-    private const val KEY_EMAIL   = "email"
-    private const val KEY_PHONE   = "phone"
+    private const val PREFS    = "ll_session"
+    private const val KEY_ROLE = "role"
+    private const val KEY_UID  = "uid"        // Firebase Auth UID (String)
+    private const val KEY_NAME = "name"
+    private const val KEY_EMAIL= "email"
+    private const val KEY_PHONE= "phone"
+    private const val KEY_VERIFIED = "is_verified"
 
     fun save(ctx: Context, result: LoginResult) {
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().apply {
-            putString(KEY_ROLE,    result.role)
-            putInt   (KEY_ACCT_ID, result.acctId)
-            putLong  (KEY_USER_ID, result.userId)
-            putString(KEY_NAME,    result.name)
-            putString(KEY_EMAIL,   result.email)
-            putString(KEY_PHONE,   result.phone)
+            putString(KEY_ROLE,     result.role)
+            putString(KEY_UID,      result.userId)   // Firebase UID
+            putString(KEY_NAME,     result.name)
+            putString(KEY_EMAIL,    result.email)
+            putString(KEY_PHONE,    result.phone)
+            putBoolean(KEY_VERIFIED,result.isVerified)
             apply()
         }
     }
@@ -27,11 +27,12 @@ object SessionManager {
     fun getRole(ctx: Context): String? =
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_ROLE, null)
 
-    fun getAcctId(ctx: Context): Int =
-        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY_ACCT_ID, 0)
+    /** Returns the Firebase Auth UID (String). */
+    fun getUserId(ctx: Context): String =
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_UID, "") ?: ""
 
-    fun getUserId(ctx: Context): Long =
-        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getLong(KEY_USER_ID, 0L)
+    /** Kept for compatibility — same as getUserId (Firebase UID = account ID). */
+    fun getAcctId(ctx: Context): String = getUserId(ctx)
 
     fun getName(ctx: Context): String =
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_NAME, "") ?: ""
@@ -41,6 +42,9 @@ object SessionManager {
 
     fun getPhone(ctx: Context): String =
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_PHONE, "") ?: ""
+
+    fun isVerified(ctx: Context): Boolean =
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_VERIFIED, false)
 
     fun isLoggedIn(ctx: Context): Boolean = getRole(ctx) != null
 

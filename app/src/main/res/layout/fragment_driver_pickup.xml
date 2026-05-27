@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="#121212">
 
     <!-- Black Header -->
     <LinearLayout
@@ -133,7 +133,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="Available Orders"
-                android:textColor="#1A1A1A"
+                android:textColor="#FFFFFF"
                 android:textSize="17sp"
                 android:textStyle="bold" />
 

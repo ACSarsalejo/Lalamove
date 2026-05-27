@@ -59,7 +59,7 @@ class DriverRecordFragment : Fragment() {
     }
 
     private fun loadRecords() {
-        val driverId = SessionManager.getUserId(requireContext()).toString()
+        val driverId = SessionManager.getUserId(requireContext())
         FirebaseFirestore.getInstance()
             .collection("booking")
             .whereEqualTo("Book_DrvrID", driverId)
@@ -91,12 +91,15 @@ class DriverRecordFragment : Fragment() {
     ) : RecyclerView.Adapter<RecordAdapter.ViewHolder>() {
 
         class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val fare:    TextView = view.findViewById(R.id.recordFare)
-            val status:  TextView = view.findViewById(R.id.recordStatus)
-            val pickup:  TextView = view.findViewById(R.id.recordPickup)
-            val dropoff: TextView = view.findViewById(R.id.recordDropoff)
-            val vehicle: TextView = view.findViewById(R.id.recordVehicle)
-            val payment: TextView = view.findViewById(R.id.recordPayment)
+            val fare:          TextView  = view.findViewById(R.id.recordFare)
+            val status:        TextView  = view.findViewById(R.id.recordStatus)
+            val pickup:        TextView  = view.findViewById(R.id.recordPickup)
+            val dropoff:       TextView  = view.findViewById(R.id.recordDropoff)
+            val vehicle:       TextView  = view.findViewById(R.id.recordVehicle)
+            val payment:       TextView  = view.findViewById(R.id.recordPayment)
+            val ratingRow:     LinearLayout = view.findViewById(R.id.recordRatingRow)
+            val ratingStars:   TextView  = view.findViewById(R.id.recordRatingStars)
+            val ratingComment: TextView  = view.findViewById(R.id.recordRatingComment)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -131,6 +134,19 @@ class DriverRecordFragment : Fragment() {
                 cornerRadius = 40f
             }
             holder.status.background = bg
+
+            // Show rating + comment for rated delivered orders
+            val isRated  = order["Book_IsRated"] as? Boolean ?: false
+            val rating   = (order["Book_RatingGiven"] as? Number)?.toInt() ?: 0
+            val feedback = order["Book_Feedback"]?.toString() ?: ""
+            if (rawStatus == "delivered" && isRated && rating > 0) {
+                holder.ratingRow.visibility = android.view.View.VISIBLE
+                holder.ratingStars.text = "⭐".repeat(rating) + "☆".repeat(5 - rating)
+                holder.ratingComment.text = feedback.ifEmpty { "No comment" }
+                holder.ratingComment.visibility = if (feedback.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+            } else {
+                holder.ratingRow.visibility = android.view.View.GONE
+            }
         }
 
         override fun getItemCount() = records.size

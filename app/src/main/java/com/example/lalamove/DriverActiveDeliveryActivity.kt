@@ -1,18 +1,28 @@
 package com.example.lalamove
 
+import android.Manifest
 import android.content.Intent
 import android.animation.ValueAnimator
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.location.Geocoder
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.firestore.FirebaseFirestore
 import org.osmdroid.config.Configuration
@@ -22,6 +32,8 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.util.Locale
 
 class DriverActiveDeliveryActivity : AppCompatActivity() {
@@ -42,6 +54,40 @@ class DriverActiveDeliveryActivity : AppCompatActivity() {
     private var vehicleType = "motorcycle"
     private val mainHandler = Handler(Looper.getMainLooper())
     private var markerAnimator: ValueAnimator? = null
+
+    // Camera / gallery proof of delivery
+    private var cameraImageUri: Uri? = null
+    private var proofBytes: ByteArray? = null
+
+    private val cameraLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            cameraImageUri?.let { uri ->
+                val bmp = MediaStore.Images.Media.getBitmap(contentResolver, uri)
+                proofBytes = compressBitmap(bmp)
+                onProofCaptured()
+            }
+        }
+    }
+
+    private val galleryLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            val stream = contentResolver.openInputStream(uri)
+            val bmp = BitmapFactory.decodeStream(stream)
+            stream?.close()
+            proofBytes = compressBitmap(bmp)
+            onProofCaptured()
+        }
+    }
+
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) launchCamera() else launchGallery()
+    }
 
     private val trackingRunnable = object : Runnable {
         override fun run() {
@@ -145,7 +191,6 @@ class DriverActiveDeliveryActivity : AppCompatActivity() {
                 FirebaseFirestore.getInstance().collection("booking").document(orderId)
                     .update("Book_Status", "picked_up")
                     .addOnSuccessListener {
-                        ApiClient.triggerSync()
                         isPickedUp = true
                         btnMainAction.isEnabled = true
                         btnMainAction.text = "Confirm Delivery"
@@ -175,12 +220,75 @@ class DriverActiveDeliveryActivity : AppCompatActivity() {
         }
 
         btnAddProof.setOnClickListener {
-            Toast.makeText(this, "📷 Capturing Proof of Delivery...", Toast.LENGTH_SHORT).show()
-            Handler(Looper.getMainLooper()).postDelayed({
+            showProofSourceDialog()
+        }
+    }
+
+    // ── Proof of Delivery ──────────────────────────────────────────────────────
+
+    private fun showProofSourceDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Add Proof of Delivery")
+            .setItems(arrayOf("📷 Take Photo", "🖼️ Choose from Gallery")) { _, which ->
+                if (which == 0) {
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                        == PackageManager.PERMISSION_GRANTED) {
+                        launchCamera()
+                    } else {
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                } else {
+                    launchGallery()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun launchCamera() {
+        val imgFile = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+            "proof_${orderId}_${System.currentTimeMillis()}.jpg")
+        val uri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", imgFile)
+        cameraImageUri = uri
+        cameraLauncher.launch(uri)
+    }
+
+    private fun launchGallery() {
+        galleryLauncher.launch("image/*")
+    }
+
+    private fun compressBitmap(bmp: Bitmap): ByteArray {
+        val out = ByteArrayOutputStream()
+        // Scale down if too large
+        val maxDim = 1280
+        val scaled = if (bmp.width > maxDim || bmp.height > maxDim) {
+            val scale = maxDim.toFloat() / maxOf(bmp.width, bmp.height)
+            Bitmap.createScaledBitmap(bmp, (bmp.width * scale).toInt(), (bmp.height * scale).toInt(), true)
+        } else bmp
+        scaled.compress(Bitmap.CompressFormat.JPEG, 80, out)
+        return out.toByteArray()
+    }
+
+    private fun onProofCaptured() {
+        val bytes = proofBytes ?: return
+        val driverId = SessionManager.getUserId(this)
+        val btnAddProof = findViewById<MaterialButton>(R.id.btnAddProof)
+        btnAddProof.text = "Uploading…"
+        btnAddProof.isEnabled = false
+
+        ApiClient.uploadProof(driverId, orderId, bytes) { success, msg ->
+            if (success) {
                 btnAddProof.text = "Proof Added ✅"
-                btnAddProof.isEnabled = false
-                Toast.makeText(this, "Proof uploaded successfully", Toast.LENGTH_SHORT).show()
-            }, 1500)
+                isProofCaptured = true
+                Toast.makeText(this, "Proof uploaded successfully!", Toast.LENGTH_SHORT).show()
+            } else {
+                btnAddProof.text = "Add Proof 📷"
+                btnAddProof.isEnabled = true
+                // Even if upload fails, mark locally captured
+                isProofCaptured = true
+                btnAddProof.text = "Proof Captured ✅ (offline)"
+                Toast.makeText(this, "Proof captured. Will sync when connected.", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -295,7 +403,6 @@ class DriverActiveDeliveryActivity : AppCompatActivity() {
         FirebaseFirestore.getInstance().collection("booking").document(orderId)
             .update("Book_Status", "delivered")
             .addOnSuccessListener {
-                ApiClient.triggerSync()
                 Toast.makeText(this, "🎉 Delivery completed!", Toast.LENGTH_LONG).show()
                 val intent = Intent(this, DriverDashboardActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP

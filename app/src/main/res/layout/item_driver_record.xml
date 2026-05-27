@@ -7,7 +7,8 @@
     android:layout_marginHorizontal="12dp"
     android:layout_marginVertical="5dp"
     app:cardCornerRadius="14dp"
-    app:cardElevation="2dp">
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="#1E1E1E">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,7 +30,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="₱0.00"
-                android:textColor="#1A1A1A"
+                android:textColor="#FFFFFF"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
@@ -64,7 +65,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Pickup location"
-                android:textColor="#444444"
+                android:textColor="#CCCCCC"
                 android:textSize="13sp"
                 android:maxLines="1"
                 android:ellipsize="end" />
@@ -88,7 +89,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Dropoff location"
-                android:textColor="#444444"
+                android:textColor="#CCCCCC"
                 android:textSize="13sp"
                 android:maxLines="1"
                 android:ellipsize="end" />
@@ -117,6 +118,37 @@
                 android:text="Cash"
                 android:textColor="#888888"
                 android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Rating row (visible when delivered and rated) -->
+        <LinearLayout
+            android:id="@+id/recordRatingRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="10dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/recordRatingStars"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⭐⭐⭐⭐⭐"
+                android:textSize="13sp"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/recordRatingComment"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Great service!"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp"
+                android:fontStyle="italic"
+                android:maxLines="2"
+                android:ellipsize="end" />
         </LinearLayout>
     </LinearLayout>
 

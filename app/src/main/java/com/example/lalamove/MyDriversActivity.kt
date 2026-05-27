@@ -32,8 +32,7 @@ class MyDriversActivity : AppCompatActivity() {
     private val acctId get() = SessionManager.getAcctId(this)
 
     data class DriverItem(
-        val fdId: Int,
-        val driverDbId: Int,
+        val uid: String,
         val name: String,
         val vehicle: String,
         val rating: Float,
@@ -96,18 +95,16 @@ class MyDriversActivity : AppCompatActivity() {
             if (arr != null) {
                 for (i in 0 until arr.length()) {
                     val obj = arr.getJSONObject(i)
-                    val fn  = obj.optString("Drvr_firstName")
+                    val fn  = obj.optString("Drvr_FirstName")
                     val ln  = obj.optString("Drvr_LastName")
-                    val model = obj.optString("Vhcl_Model", "").let { m ->
-                        if (m.isNotEmpty()) m else obj.optString("Vhcl_Type", "Vehicle")
-                    }
+                    val uid = obj.optString("Drvr_ID")
+                    val vehicleType = obj.optString("Drvr_VhclTypeID", "Vehicle")
                     driverList.add(DriverItem(
-                        fdId       = obj.optInt("FD_ID"),
-                        driverDbId = obj.optInt("FD_DrvrID"),
-                        name       = "$fn $ln".trim().ifEmpty { "Driver" },
-                        vehicle    = model,
-                        rating     = obj.optDouble("Drvr_Rating", 0.0).toFloat(),
-                        status     = obj.optString("FD_Status")
+                        uid    = uid,
+                        name   = "$fn $ln".trim().ifEmpty { "Driver" },
+                        vehicle = vehicleType,
+                        rating  = obj.optDouble("Drvr_Rating", 0.0).toFloat(),
+                        status  = currentFilter
                     ))
                 }
             }
@@ -129,9 +126,9 @@ class MyDriversActivity : AppCompatActivity() {
             .setTitle("Remove Driver")
             .setMessage("Remove ${item.name} from your ${item.status} list?")
             .setPositiveButton("Remove") { _, _ ->
-                ApiClient.setDriverFavourite(acctId, item.driverDbId, "none") { ok, _ ->
+                ApiClient.setDriverFavourite(acctId, item.uid, "none") { ok, _ ->
                     if (ok) {
-                        val idx = driverList.indexOfFirst { it.fdId == item.fdId }
+                        val idx = driverList.indexOfFirst { it.uid == item.uid }
                         if (idx >= 0) {
                             driverList.removeAt(idx)
                             adapter.notifyItemRemoved(idx)
@@ -188,7 +185,7 @@ class MyDriversActivity : AppCompatActivity() {
                 holder.badge.setBackgroundColor(Color.parseColor("#FFEBEE"))
             }
 
-            holder.btnRemove.setOnClickListener { onRemove(item) }
+            holder.btnRemove.setOnClickListener { onRemove(items[position]) }
         }
 
         override fun getItemCount() = items.size

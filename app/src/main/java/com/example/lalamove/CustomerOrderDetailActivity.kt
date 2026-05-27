@@ -306,6 +306,7 @@ class CustomerOrderDetailActivity : AppCompatActivity() {
                     val lastName = doc.getString("Drvr_LastName") ?: ""
                     val vehicleId = doc.get("Drvr_VehicleID")?.toString()
                     val vehicleType = doc.getString("Drvr_VhclTypeID")?.replaceFirstChar { it.uppercase() } ?: "Vehicle"
+                    val driverUid = driverId!!   // Firebase UID = Firestore doc ID used above
                     findViewById<TextView>(R.id.driverName).text = "$firstName $lastName"
 
                     // Setup Chat & Call Buttons
@@ -326,6 +327,30 @@ class CustomerOrderDetailActivity : AppCompatActivity() {
                     val ratingVal = doc.getDouble("Drvr_Rating") ?: 5.0
                     val ratingFormatted = String.format(Locale.US, "⭐ %.2f", ratingVal)
                     findViewById<TextView>(R.id.driverRatingText).text = ratingFormatted
+
+                    // Favourite driver button
+                    val custUid = SessionManager.getAcctId(this)
+                    val btnFav = findViewById<MaterialButton>(R.id.btnFavouriteDriver)
+                    var isFavourited = false
+                    btnFav.setOnClickListener {
+                        val newStatus = if (isFavourited) "none" else "favourited"
+                        ApiClient.setDriverFavourite(custUid, driverUid, newStatus) { success, msg ->
+                            if (success) {
+                                isFavourited = !isFavourited
+                                btnFav.text = if (isFavourited) "★ Favourited" else "★ Favourite"
+                                Toast.makeText(this,
+                                    if (isFavourited) "Added to My Drivers ★" else "Removed from My Drivers",
+                                    Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(this, msg.ifEmpty { "Failed. Try again." }, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+
+                    // Report driver button
+                    findViewById<MaterialButton>(R.id.btnReportDriver).setOnClickListener {
+                        showReportDriverDialog(custUid, driverUid, "$firstName $lastName")
+                    }
 
                     if (!vehicleId.isNullOrEmpty()) {
                         firestore.collection("vehicle").document(vehicleId).get().addOnSuccessListener { vDoc ->
@@ -427,12 +452,14 @@ class CustomerOrderDetailActivity : AppCompatActivity() {
                     .setTitle("Final Confirmation")
                     .setMessage("This action cannot be undone. Cancel order permanently?")
                     .setPositiveButton("Confirm Cancellation") { _, _ ->
+                        // Update Firestore immediately for live UI
                         firestore.collection("booking").document(orderId)
                             .update("Book_Status", "cancelled")
                             .addOnSuccessListener {
-                                ApiClient.triggerSync()
                                 Toast.makeText(this, "Order Cancelled", Toast.LENGTH_SHORT).show()
                             }
+                        // Update Firestore record
+                        ApiClient.cancelOrder(orderId) { _, _ -> }
                     }
                     .setNegativeButton("No", null)
                     .show()
@@ -449,7 +476,6 @@ class CustomerOrderDetailActivity : AppCompatActivity() {
                 firestore.collection("booking").document(orderId)
                     .update("Book_Status", "completed")
                     .addOnSuccessListener {
-                        ApiClient.triggerSync()
                         Toast.makeText(this, "Delivery confirmed!", Toast.LENGTH_SHORT).show()
                         showRateDialog()
                     }
@@ -498,7 +524,6 @@ class CustomerOrderDetailActivity : AppCompatActivity() {
                         "Book_Feedback"    to feedback
                     ))
                     .addOnSuccessListener {
-                        ApiClient.triggerSync()
                         Toast.makeText(this, "Thank you for your feedback! ⭐", Toast.LENGTH_LONG).show()
                         val intent = Intent(this, VehicleSelectionActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
@@ -508,6 +533,44 @@ class CustomerOrderDetailActivity : AppCompatActivity() {
             }
             .setNegativeButton("Skip", null)
             .setCancelable(false)
+            .show()
+    }
+
+    private fun showReportDriverDialog(acctId: String, driverId: String, driverName: String) {
+        val categories = arrayOf("Reckless Driving", "Unprofessional Behavior", "Wrong Route", "Missing Items", "Other")
+        var selectedCategory = categories[0]
+
+        AlertDialog.Builder(this)
+            .setTitle("Report Driver")
+            .setSingleChoiceItems(categories, 0) { _, which -> selectedCategory = categories[which] }
+            .setPositiveButton("Next") { _, _ ->
+                val inputView = LayoutInflater.from(this).inflate(R.layout.dialog_report_details, null)
+                val inputSubject = inputView.findViewById<android.widget.EditText>(R.id.inputReportSubject)
+                val inputDetails = inputView.findViewById<android.widget.EditText>(R.id.inputReportDetails)
+                inputSubject.hint = "Subject (e.g. $selectedCategory)"
+
+                AlertDialog.Builder(this)
+                    .setTitle("Report $driverName")
+                    .setView(inputView)
+                    .setPositiveButton("Submit Report") { _, _ ->
+                        val subject = inputSubject.text.toString().trim().ifEmpty { selectedCategory }
+                        val details = inputDetails.text.toString().trim()
+                        if (details.isEmpty()) {
+                            Toast.makeText(this, "Please describe what happened.", Toast.LENGTH_SHORT).show()
+                            return@setPositiveButton
+                        }
+                        ApiClient.reportDriver(acctId, driverId, selectedCategory, subject, details) { success, msg ->
+                            if (success) {
+                                Toast.makeText(this, "Report submitted. Thank you for your feedback.", Toast.LENGTH_LONG).show()
+                            } else {
+                                Toast.makeText(this, msg.ifEmpty { "Report failed. Try again." }, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+            .setNegativeButton("Cancel", null)
             .show()
     }
 

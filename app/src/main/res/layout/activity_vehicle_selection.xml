@@ -157,19 +157,30 @@
                             android:id="@+id/pickupLocation"
                             android:layout_width="match_parent"
                             android:layout_height="48dp"
-                            android:orientation="vertical"
+                            android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:paddingEnd="16dp"
+                            android:paddingEnd="8dp"
                             android:background="?attr/selectableItemBackground">
                             <TextView
                                 android:id="@+id/pickupLocationText"
-                                android:layout_width="match_parent"
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
                                 android:layout_height="wrap_content"
                                 android:text="Select pick-up location"
                                 android:textColor="#333333"
                                 android:textSize="14sp"
                                 android:maxLines="1"
                                 android:ellipsize="end" />
+                            <ImageView
+                                android:id="@+id/btnPickupSaved"
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:src="@drawable/ic_coupon"
+                                android:tint="#FF6B00"
+                                android:padding="4dp"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:background="?attr/selectableItemBackgroundBorderless" />
                         </LinearLayout>
 
                         <View
@@ -181,19 +192,30 @@
                             android:id="@+id/dropoffLocation"
                             android:layout_width="match_parent"
                             android:layout_height="48dp"
-                            android:orientation="vertical"
+                            android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:paddingEnd="16dp"
+                            android:paddingEnd="8dp"
                             android:background="?attr/selectableItemBackground">
                             <TextView
                                 android:id="@+id/dropoffLocationText"
-                                android:layout_width="match_parent"
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
                                 android:layout_height="wrap_content"
                                 android:text="Select drop-off location"
                                 android:textColor="#999999"
                                 android:textSize="14sp"
                                 android:maxLines="1"
                                 android:ellipsize="end" />
+                            <ImageView
+                                android:id="@+id/btnDropoffSaved"
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:src="@drawable/ic_coupon"
+                                android:tint="#FF6B00"
+                                android:padding="4dp"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:background="?attr/selectableItemBackgroundBorderless" />
                         </LinearLayout>
 
                         <View
@@ -201,11 +223,22 @@
                             android:layout_height="1dp"
                             android:background="#F0F0F0" />
 
+                        <!-- Dynamic extra stops inserted here by VehicleSelectionActivity -->
                         <LinearLayout
+                            android:id="@+id/stopsContainer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+
+                        <LinearLayout
+                            android:id="@+id/btnAddStop"
                             android:layout_width="match_parent"
                             android:layout_height="40dp"
                             android:gravity="center_vertical"
-                            android:paddingEnd="16dp">
+                            android:paddingEnd="16dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"

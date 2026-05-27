@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="14dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
+
+    <TextView
+        android:id="@+id/pickAddrIcon"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:gravity="center"
+        android:textSize="18sp"
+        android:layout_marginEnd="14dp"
+        android:background="@drawable/circle_orange" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/pickAddrLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/pickAddrAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#AAAAAA"
+            android:textSize="13sp"
+            android:layout_marginTop="2dp"
+            android:maxLines="2"
+            android:ellipsize="end" />
+    </LinearLayout>
+
+</LinearLayout>

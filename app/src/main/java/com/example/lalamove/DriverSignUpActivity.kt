@@ -10,8 +10,6 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 
 class DriverSignUpActivity : AppCompatActivity() {
 
@@ -58,29 +56,9 @@ class DriverSignUpActivity : AppCompatActivity() {
             NotificationHelper.showBanner(driverSignupRootLayout, "Submitting application...", true)
             btnSubmitApplication.isEnabled = false
 
-            ApiClient.registerDriver(fn, ln, ph, em, pw, vehicleTypeId) { success, userId, acctId, error ->
-                if (success && userId != 0L) {
-                    // Sync new driver to Firestore so the Android app can find them
-                    FirebaseFirestore.getInstance()
-                        .collection("driver")
-                        .document(userId.toString())
-                        .set(mapOf(
-                            "Drvr_ID"           to userId,
-                            "Drvr_AcctId"       to acctId,
-                            "Drvr_FirstName"    to fn,
-                            "Drvr_LastName"     to ln,
-                            "Drvr_PhoneNum"     to ph,
-                            "Drvr_VhclTypeID"   to vehicleTypeId,
-                            "Drvr_LicenseNum"   to "TEMP-$userId",
-                            "Drvr_IsVerified"   to false,
-                            "Drvr_Status"       to "offline",
-                            "Drvr_Rating"       to 0.0,
-                            "Drvr_RatingCount"  to 0,
-                            "Drvr_WalletBalance" to 0.0,
-                            "Drvr_CommissionRate" to 0.80,
-                            "Drvr_AreaID"       to 1
-                        ), SetOptions.merge())
-
+            // Firebase Auth creates the account; ApiClient.registerDriver writes the Firestore driver doc
+            ApiClient.registerDriver(fn, ln, ph, em, pw, vehicleTypeId) { success, uid, error ->
+                if (success) {
                     val intent = Intent(this, LoginActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                     intent.putExtra("SIGNUP_SUCCESS", true)

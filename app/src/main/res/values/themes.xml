@@ -22,6 +22,19 @@
         <item name="android:windowAnimationStyle">@style/WindowAnimation</item>
     </style>
 
+    <!-- Splash screen theme — white background, orange status bar text -->
+    <style name="Theme.Lalamove.Splash" parent="Theme.Lalamove">
+        <item name="android:statusBarColor">#FFFFFF</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">#FFFFFF</item>
+    </style>
+
+    <!-- Circle shape for ShapeableImageView -->
+    <style name="CircleImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
     <!-- Slide-based transitions applied globally to every activity -->
     <style name="WindowAnimation" parent="@android:style/Animation.Activity">
         <item name="android:activityOpenEnterAnimation">@anim/slide_in_right</item>

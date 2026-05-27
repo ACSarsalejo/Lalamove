@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Label (e.g. Home, Office)"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:layout_marginBottom="4dp" />
+
+    <EditText
+        android:id="@+id/inputAddrLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Label"
+        android:inputType="text"
+        android:layout_marginBottom="14dp"
+        android:padding="10dp"
+        android:background="@null"
+        android:textSize="15sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#DDDDDD"
+        android:layout_marginBottom="14dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Address"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:layout_marginBottom="4dp" />
+
+    <EditText
+        android:id="@+id/inputAddrAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Full address"
+        android:inputType="textMultiLine"
+        android:lines="2"
+        android:layout_marginBottom="14dp"
+        android:padding="10dp"
+        android:background="@null"
+        android:textSize="15sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#DDDDDD"
+        android:layout_marginBottom="14dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Type"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:layout_marginBottom="8dp" />
+
+    <RadioGroup
+        android:id="@+id/radioAddrType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/radioHome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🏠 Home"
+            android:layout_marginEnd="16dp" />
+
+        <RadioButton
+            android:id="@+id/radioWork"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="💼 Work"
+            android:layout_marginEnd="16dp" />
+
+        <RadioButton
+            android:id="@+id/radioOther"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📍 Other" />
+    </RadioGroup>
+
+</LinearLayout>

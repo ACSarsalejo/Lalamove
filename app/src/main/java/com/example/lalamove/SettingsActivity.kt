@@ -20,6 +20,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var prefs: SharedPreferences
     private val acctId get() = SessionManager.getAcctId(this)
+    private val role   get() = SessionManager.getRole(this) ?: "customer"
 
     private val photoPicker = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -27,7 +28,7 @@ class SettingsActivity : AppCompatActivity() {
             val bytes = contentResolver.openInputStream(uri)?.readBytes() ?: return@registerForActivityResult
             val mime = contentResolver.getType(uri) ?: "image/jpeg"
 
-            ApiClient.updatePhoto(acctId, bytes, mime) { success, urlOrError ->
+            ApiClient.updatePhoto(acctId, role, bytes, mime) { success, urlOrError ->
                 if (success) {
                     val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                     findViewById<ImageView>(R.id.profilePhoto).setImageBitmap(bmp)
@@ -100,7 +101,7 @@ class SettingsActivity : AppCompatActivity() {
         val initials = parts.mapNotNull { it.firstOrNull()?.toString() }.take(2).joinToString("")
         profileInitials.text = initials.ifEmpty { "?" }
 
-        ApiClient.getProfile(acctId) { json ->
+        ApiClient.getProfile(acctId, role) { json ->
             if (json != null) {
                 inputFirstName.setText(json.optString("first_name"))
                 inputLastName.setText(json.optString("last_name"))
@@ -132,13 +133,12 @@ class SettingsActivity : AppCompatActivity() {
             if (!valid) return@setOnClickListener
 
             btnSaveProfile.isEnabled = false
-            ApiClient.updateProfile(acctId, fn, ln, ph, em) { success, error ->
+            ApiClient.updateProfile(acctId, role, fn, ln, ph, em) { success, error ->
                 btnSaveProfile.isEnabled = true
                 if (success) {
                     // Update session cache
                     val updated = LoginResult(
                         role = SessionManager.getRole(this) ?: "customer",
-                        acctId = acctId,
                         userId = SessionManager.getUserId(this),
                         name = "$fn $ln".trim(),
                         email = em,
@@ -167,7 +167,7 @@ class SettingsActivity : AppCompatActivity() {
             if (!valid) return@setOnClickListener
 
             btnChangePw.isEnabled = false
-            ApiClient.changePassword(acctId, curr, newp) { success, error ->
+            ApiClient.changePassword(newp) { success, error ->
                 btnChangePw.isEnabled = true
                 if (success) {
                     inputCurrentPw.text?.clear()
