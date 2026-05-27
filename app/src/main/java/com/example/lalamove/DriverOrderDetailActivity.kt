@@ -64,32 +64,63 @@ class DriverOrderDetailActivity : AppCompatActivity() {
 
             val driverId = SessionManager.getUserId(this@DriverOrderDetailActivity)
 
-            // Update booking status and assign driver
-            firestore.collection("booking").document(orderId)
-                .update(
-                    mapOf(
-                        "Book_Status" to "accepted",
-                        "Book_DrvrID" to driverId
-                    )
-                )
-                .addOnSuccessListener {
-                    Toast.makeText(this, "Order accepted!", Toast.LENGTH_SHORT).show()
-                    // Navigate to Active Delivery screen
-                    val intent = Intent(this, DriverActiveDeliveryActivity::class.java).apply {
-                        putExtra("ORDER_ID", orderId)
-                        putExtra("PICKUP", pickup)
-                        putExtra("DROPOFF", dropoff)
-                        putExtra("FARE", fare)
-                        putExtra("VEHICLE", vehicle)
+            // Route through PHP so MySQL is updated atomically with Firestore.
+            // Without this, complete_delivery.php cannot find the booking because
+            // it queries "WHERE Book_FirebaseDocID = ? AND Book_DrvrID = ?".
+            Thread {
+                var phpSuccess = false
+                try {
+                    val body = org.json.JSONObject().apply {
+                        put("order_id",  orderId)
+                        put("driver_id", driverId.toLongOrNull() ?: driverId)
+                    }.toString()
+                    val conn = java.net.URL("http://10.0.2.2/lalamove/api/accept_order.php")
+                        .openConnection() as java.net.HttpURLConnection
+                    conn.requestMethod = "POST"; conn.doOutput = true
+                    conn.connectTimeout = 10_000; conn.readTimeout = 10_000
+                    conn.setRequestProperty("Content-Type", "application/json")
+                    conn.outputStream.use { it.write(body.toByteArray()) }
+                    val resp = conn.inputStream.bufferedReader().readText()
+                    conn.disconnect()
+                    phpSuccess = org.json.JSONObject(resp).optBoolean("success", false)
+                } catch (_: Exception) { /* network unreachable */ }
+
+                if (!phpSuccess) {
+                    // Fallback: direct Firestore write so the order still moves forward
+                    android.os.Handler(android.os.Looper.getMainLooper()).post {
+                        firestore.collection("booking").document(orderId)
+                            .update(mapOf("Book_Status" to "accepted", "Book_DrvrID" to driverId))
+                            .addOnSuccessListener {
+                                Toast.makeText(this, "Order accepted!", Toast.LENGTH_SHORT).show()
+                                startActivity(Intent(this, DriverActiveDeliveryActivity::class.java).apply {
+                                    putExtra("ORDER_ID", orderId)
+                                    putExtra("PICKUP",   pickup)
+                                    putExtra("DROPOFF",  dropoff)
+                                    putExtra("FARE",     fare)
+                                    putExtra("VEHICLE",  vehicle)
+                                })
+                                finish()
+                            }
+                            .addOnFailureListener { e ->
+                                btnTakeOrder.isEnabled = true
+                                btnTakeOrder.text = "Take Order"
+                                Toast.makeText(this, "Failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
                     }
-                    startActivity(intent)
-                    finish()
+                } else {
+                    android.os.Handler(android.os.Looper.getMainLooper()).post {
+                        Toast.makeText(this, "Order accepted!", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this, DriverActiveDeliveryActivity::class.java).apply {
+                            putExtra("ORDER_ID", orderId)
+                            putExtra("PICKUP",   pickup)
+                            putExtra("DROPOFF",  dropoff)
+                            putExtra("FARE",     fare)
+                            putExtra("VEHICLE",  vehicle)
+                        })
+                        finish()
+                    }
                 }
-                .addOnFailureListener { e ->
-                    btnTakeOrder.isEnabled = true
-                    btnTakeOrder.text = "Take Order"
-                    Toast.makeText(this, "Failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
+            }.start()
         }
     }
 

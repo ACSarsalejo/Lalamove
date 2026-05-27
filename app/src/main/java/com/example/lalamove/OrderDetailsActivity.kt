@@ -290,11 +290,14 @@ class OrderDetailsActivity : AppCompatActivity() {
                 )
                 bookingRef.set(bookingData)
                     .addOnSuccessListener {
+                        // Deduct wallet immediately if payment method is Wallet
                         if (paymentMethod == "Wallet") {
                             val uid  = SessionManager.getUserId(this@OrderDetailsActivity)
                             val role = SessionManager.getRole(this@OrderDetailsActivity) ?: "customer"
                             ApiClient.walletDeduct(uid, role, currentFareAmount, "Payment for order $orderId") { _, _, _ -> }
                         }
+
+                        // Write delivery/item sub-documents to Firestore (driver sees item info)
                         stopsList.forEachIndexed { index, stopAddress ->
                             val deliveryData = hashMapOf<String, Any?>(
                                 "Dlvr_BookID"          to orderId,
@@ -319,6 +322,51 @@ class OrderDetailsActivity : AppCompatActivity() {
                                     firestore.collection("item").add(itemData)
                                 }
                         }
+
+                        // ── Mirror to MySQL so the web platform sees the order instantly ──
+                        // Fire-and-forget: runs in background, doesn't block the UI.
+                        val userId   = SessionManager.getUserId(this@OrderDetailsActivity)
+                        val phpBody  = org.json.JSONObject().apply {
+                            put("order_id",       orderId)
+                            put("cust_id",        userId.toLongOrNull() ?: userId)
+                            put("vehicle_type",   vehicleType)
+                            put("total_fare",     currentFareAmount)
+                            put("pickup",         pickup)
+                            put("dropoff",        dropoff)
+                            put("payment_method", paymentMethod)
+                            put("notes",          driverNotes)
+                            put("coupon_code",    couponCode)
+                            put("item_title",     savedItemTitle)
+                            put("item_subtitle",  savedItemSubtitle)
+                            put("contact_phone",  contactPhone)
+                            put("distance_km",    distanceKm)
+                        }.toString()
+                        Thread {
+                            try {
+                                val conn = java.net.URL("http://10.0.2.2/lalamove/api/submit_booking.php")
+                                    .openConnection() as java.net.HttpURLConnection
+                                conn.requestMethod = "POST"; conn.doOutput = true
+                                conn.connectTimeout = 8_000; conn.readTimeout = 8_000
+                                conn.setRequestProperty("Content-Type", "application/json")
+                                conn.outputStream.use { it.write(phpBody.toByteArray()) }
+                                val resp = conn.inputStream.bufferedReader().readText()
+                                conn.disconnect()
+                                val json = org.json.JSONObject(resp)
+                                if (json.optBoolean("success", false)) {
+                                    val bookId = json.optInt("book_id", 0)
+                                    if (bookId > 0) {
+                                        // Back-write the MySQL Book_ID into the Firestore doc
+                                        // so complete_delivery.php and web can cross-reference
+                                        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                                            .collection("booking").document(orderId)
+                                            .update("Book_ID", bookId)
+                                    }
+                                }
+                            } catch (_: Exception) {
+                                // Non-fatal: MySQL will be populated by the next admin sync
+                            }
+                        }.start()
+
                         val userName = SessionManager.getName(this@OrderDetailsActivity).ifEmpty { "User" }
                         val findIntent = Intent(this@OrderDetailsActivity, FindingDriverActivity::class.java).apply {
                             putExtra("ORDER_ID",       orderId)
