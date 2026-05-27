@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
+
+    <!-- Black Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="#1A1A1A"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+        android:elevation="4dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Order Records"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Filter tabs -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        android:scrollbars="none"
+        android:elevation="2dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/filterAll"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="All"
+                android:textSize="13sp"
+                android:textColor="#FF6B00"
+                android:layout_marginEnd="4dp"
+                android:paddingHorizontal="16dp"
+                android:backgroundTint="#FFF0E8" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/filterActive"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Active"
+                android:textSize="13sp"
+                android:textColor="#555555"
+                android:layout_marginEnd="4dp"
+                android:paddingHorizontal="16dp"
+                android:backgroundTint="#00000000" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/filterCompleted"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Completed"
+                android:textSize="13sp"
+                android:textColor="#555555"
+                android:layout_marginEnd="4dp"
+                android:paddingHorizontal="16dp"
+                android:backgroundTint="#00000000" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/filterCancelled"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Cancelled"
+                android:textSize="13sp"
+                android:textColor="#555555"
+                android:paddingHorizontal="16dp"
+                android:backgroundTint="#00000000" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Records list -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerRecords"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp" />
+
+    <!-- Empty state -->
+    <LinearLayout
+        android:id="@+id/layoutNoRecords"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="40dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📦"
+            android:textSize="48sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No records yet"
+            android:textColor="#1A1A1A"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your completed and cancelled orders will appear here."
+            android:textColor="#888888"
+            android:textSize="14sp"
+            android:gravity="center" />
+    </LinearLayout>
+
+</LinearLayout>

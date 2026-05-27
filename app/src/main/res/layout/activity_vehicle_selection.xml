@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".VehicleSelectionActivity">
+
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        app:elevation="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:id="@+id/hamburgerIcon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_hamburger"
+                    app:tint="#444444" />
+                <ImageView
+                    android:layout_width="0dp"
+                    android:layout_height="32dp"
+                    android:layout_weight="1"
+                    android:src="@drawable/ic_logo"
+                    android:scaleType="fitCenter" />
+                <ImageView
+                    android:id="@+id/bellIcon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_bell"
+                    app:tint="#444444" />
+            </LinearLayout>
+
+            <!-- Recent Order Banner -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/recentOrderBanner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FFF8F0"
+                app:strokeColor="#FFE0B2"
+                app:strokeWidth="1dp"
+                android:layout_marginBottom="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:visibility="gone">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="14dp"
+                    android:gravity="center_vertical">
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_box"
+                        app:tint="#FF6B00"
+                        android:layout_marginEnd="12dp" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/recentOrderStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="PENDING"
+                            android:textColor="#FF6B00"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/recentOrderText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="You have an active order"
+                            android:textColor="#222222"
+                            android:textSize="14sp"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
+                    </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="View ›"
+                        android:textColor="#FF6B00"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Location Picker -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#EEEEEE"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:id="@+id/locationIconStrip"
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center_horizontal"
+                        android:paddingTop="19dp"
+                        android:layout_alignParentStart="true">
+                        <View
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
+                            android:background="@drawable/shape_pickup_dot" />
+                        <View
+                            android:layout_width="2dp"
+                            android:layout_height="38dp"
+                            android:background="#DDDDDD" />
+                        <View
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
+                            android:background="@drawable/shape_dropoff_dot" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toEndOf="@id/locationIconStrip"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:id="@+id/pickupLocation"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:orientation="vertical"
+                            android:gravity="center_vertical"
+                            android:paddingEnd="16dp"
+                            android:background="?attr/selectableItemBackground">
+                            <TextView
+                                android:id="@+id/pickupLocationText"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Select pick-up location"
+                                android:textColor="#333333"
+                                android:textSize="14sp"
+                                android:maxLines="1"
+                                android:ellipsize="end" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#F0F0F0" />
+
+                        <LinearLayout
+                            android:id="@+id/dropoffLocation"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:orientation="vertical"
+                            android:gravity="center_vertical"
+                            android:paddingEnd="16dp"
+                            android:background="?attr/selectableItemBackground">
+                            <TextView
+                                android:id="@+id/dropoffLocationText"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Select drop-off location"
+                                android:textColor="#999999"
+                                android:textSize="14sp"
+                                android:maxLines="1"
+                                android:ellipsize="end" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#F0F0F0" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:gravity="center_vertical"
+                            android:paddingEnd="16dp">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="+ Add Stop"
+                                android:textColor="#FF6B00"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Scrollable vehicle list (per-vehicle expansion is inside item_vehicle_card.xml) -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="360dp"
+        android:clipToPadding="false"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="Available vehicles"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A1A1A" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="How to decide?"
+                    android:textColor="#FF6B00"
+                    android:textSize="11sp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    app:strokeColor="#FF6B00"
+                    app:strokeWidth="1dp"
+                    app:cornerRadius="20dp"
+                    android:backgroundTint="@android:color/transparent"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp" />
+
+            </LinearLayout>
+
+            <!-- Each card has its own expansion section (vehicleExpansion inside item_vehicle_card) -->
+            <include layout="@layout/item_vehicle_card" android:id="@+id/itemMotorcycle" />
+            <include layout="@layout/item_vehicle_card" android:id="@+id/itemSedan" />
+            <include layout="@layout/item_vehicle_card" android:id="@+id/itemSubcompact" />
+            <include layout="@layout/item_vehicle_card" android:id="@+id/itemSUV" />
+            <include layout="@layout/item_vehicle_card" android:id="@+id/itemPickup" />
+            <include layout="@layout/item_vehicle_card" android:id="@+id/itemCargoVan" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Persistent priority sheet — no dialog, no scrim, fully interactive background -->
+    <LinearLayout
+        android:id="@+id/prioritySheetView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#FFFFFF"
+        android:elevation="12dp"
+        app:layout_behavior="@string/bottom_sheet_behavior"
+        app:behavior_hideable="true"
+        app:behavior_peekHeight="0dp">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#EEEEEE" />
+
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="4dp"
+            android:background="#CCCCCC" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="12dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Select Service Type"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#1A1A1A" />
+            <TextView
+                android:id="@+id/tvSheetDistance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="13sp"
+                android:textColor="#FF6B00"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Priority -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardPriority"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="8dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#EEEEEE"
+            app:strokeWidth="1dp"
+            app:cardBackgroundColor="#FFFFFF"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+            <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="14dp">
+                <TextView android:id="@+id/badgePriority"
+                    android:layout_width="32dp" android:layout_height="32dp"
+                    android:text="⚡" android:textSize="16sp" android:gravity="center"
+                    android:background="#FFF3E0"
+                    android:layout_alignParentStart="true" android:layout_centerVertical="true"
+                    android:layout_marginEnd="12dp" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_toEndOf="@id/badgePriority"
+                    android:layout_toStartOf="@+id/tvPriorityPrice"
+                    android:layout_centerVertical="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Priority" android:textSize="14sp" android:textStyle="bold"
+                        android:textColor="#1A1A1A" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Quickest delivery. As fast as &lt;1 hr" android:textSize="11sp"
+                        android:textColor="#888888" android:layout_marginTop="2dp" />
+                </LinearLayout>
+                <TextView android:id="@+id/tvPriorityPrice"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="₱—" android:textSize="14sp" android:textStyle="bold"
+                    android:textColor="#1A1A1A"
+                    android:layout_alignParentEnd="true" android:layout_centerVertical="true" />
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Regular (default selected) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardRegular"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="8dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#FF6B00"
+            app:strokeWidth="2dp"
+            app:cardBackgroundColor="#FFF5EE"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+            <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="14dp">
+                <TextView android:id="@+id/badgeRegular"
+                    android:layout_width="32dp" android:layout_height="32dp"
+                    android:text="ⓘ" android:textSize="16sp" android:gravity="center"
+                    android:background="#FFE8D6" android:textColor="#FF6B00"
+                    android:layout_alignParentStart="true" android:layout_centerVertical="true"
+                    android:layout_marginEnd="12dp" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_toEndOf="@id/badgeRegular"
+                    android:layout_toStartOf="@+id/tvRegularPrice"
+                    android:layout_centerVertical="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Regular" android:textSize="14sp" android:textStyle="bold"
+                        android:textColor="#1A1A1A" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Standard delivery. Typically 1–2 hrs" android:textSize="11sp"
+                        android:textColor="#888888" android:layout_marginTop="2dp" />
+                </LinearLayout>
+                <TextView android:id="@+id/tvRegularPrice"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="₱—" android:textSize="14sp" android:textStyle="bold"
+                    android:textColor="#FF6B00"
+                    android:layout_alignParentEnd="true" android:layout_centerVertical="true" />
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Pooling -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardPooling"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#EEEEEE"
+            app:strokeWidth="1dp"
+            app:cardBackgroundColor="#FFFFFF"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+            <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="14dp">
+                <TextView android:id="@+id/badgePooling"
+                    android:layout_width="32dp" android:layout_height="32dp"
+                    android:text="%" android:textSize="16sp" android:gravity="center"
+                    android:background="#E8F5E9" android:textColor="#388E3C" android:textStyle="bold"
+                    android:layout_alignParentStart="true" android:layout_centerVertical="true"
+                    android:layout_marginEnd="12dp" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_toEndOf="@id/badgePooling"
+                    android:layout_toStartOf="@+id/tvPoolingPrice"
+                    android:layout_centerVertical="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Pooling" android:textSize="14sp" android:textStyle="bold"
+                        android:textColor="#1A1A1A" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Most affordable. Delivery may take 2 hrs" android:textSize="11sp"
+                        android:textColor="#888888" android:layout_marginTop="2dp" />
+                </LinearLayout>
+                <TextView android:id="@+id/tvPoolingPrice"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="₱—" android:textSize="14sp" android:textStyle="bold"
+                    android:textColor="#1A1A1A"
+                    android:layout_alignParentEnd="true" android:layout_centerVertical="true" />
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnProceed"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="24dp"
+            android:text="Next"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            app:cornerRadius="16dp"
+            android:backgroundTint="#FF6B00" />
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+<com.google.android.material.navigation.NavigationView
+    android:id="@+id/navigationView"
+    android:layout_width="300dp"
+    android:layout_height="match_parent"
+    android:layout_gravity="start"
+    app:headerLayout="@layout/drawer_header"
+    app:menu="@menu/drawer_menu"
+    app:itemIconTint="#FF6B00"
+    app:itemTextColor="#1A1A1A"
+    app:itemTextAppearance="@style/TextAppearance.AppCompat.Body1" />
+
+</androidx.drawerlayout.widget.DrawerLayout>

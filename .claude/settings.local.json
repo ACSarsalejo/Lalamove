@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Remove-Item \"C:\\\\Games\\\\Lalamove\\\\app\\\\src\\\\main\\\\java\\\\com\\\\example\\\\lalamove\\\\AdminMainActivity.kt\" -Force)",
+      "Bash(Remove-Item \"C:\\\\Games\\\\Lalamove\\\\app\\\\src\\\\main\\\\res\\\\layout\\\\activity_admin_main.xml\" -Force)",
+      "Bash(Remove-Item \"C:\\\\Games\\\\Lalamove\\\\app\\\\src\\\\main\\\\res\\\\layout\\\\item_admin_coupon.xml\" -Force)",
+      "Bash(Remove-Item \"C:\\\\Games\\\\Lalamove\\\\app\\\\src\\\\main\\\\res\\\\layout\\\\item_admin_driver.xml\" -Force)",
+      "Bash(Remove-Item \"C:\\\\Games\\\\Lalamove\\\\app\\\\src\\\\main\\\\res\\\\layout\\\\item_admin_order_row.xml\" -Force)"
+    ],
+    "additionalDirectories": [
+      "C:\\Games\\Lalamove\\app\\src\\main\\java\\com\\example\\lalamove"
+    ]
+  }
+}

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- Header -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        app:elevation="2dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp">
+            <ImageView
+                android:id="@+id/btnBackDelivery"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_search"
+                app:tint="#444444" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Active Delivery"
+                android:textColor="#222222"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+            <View android:layout_width="24dp" android:layout_height="24dp" />
+        </LinearLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <!-- Map -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+            <org.osmdroid.views.MapView
+                android:id="@+id/mapActiveDelivery"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true" />
+        </FrameLayout>
+
+        <!-- Bottom Info Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:elevation="16dp"
+            android:padding="20dp">
+
+            <!-- Pickup -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/pulse_circle"
+                    android:layout_marginEnd="12dp" />
+                <TextView
+                    android:id="@+id/deliveryPickup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Pickup"
+                    android:textColor="#222222"
+                    android:textSize="15sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </LinearLayout>
+
+            <!-- Dropoff -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+                <ImageView
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:src="@drawable/ic_search"
+                    app:tint="#FF6B00"
+                    android:layout_marginEnd="12dp" />
+                <TextView
+                    android:id="@+id/deliveryDropoff"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Dropoff"
+                    android:textColor="#222222"
+                    android:textSize="15sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </LinearLayout>
+
+            <!-- Fare -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Earnings"
+                    android:textColor="#888888"
+                    android:textSize="14sp"
+                    android:layout_centerVertical="true" />
+                <TextView
+                    android:id="@+id/deliveryFare"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="₱216.00"
+                    android:textColor="#FF6B00"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddProof"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="12dp"
+                android:text="Add Proof (Optional)"
+                android:textColor="#FF6B00"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="#FF6B00"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_search"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnMainAction"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:text="Confirm Pick Up"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                app:cornerRadius="12dp"
+                android:backgroundTint="#4CAF50" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

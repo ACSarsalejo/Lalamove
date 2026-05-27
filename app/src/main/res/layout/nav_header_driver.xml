@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="180dp"
+    android:orientation="vertical"
+    android:background="#FF6B00"
+    android:padding="24dp"
+    android:gravity="bottom">
+
+    <ImageView
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_box"
+        android:tint="#FFFFFF"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:id="@+id/navDriverName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Driver"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/navDriverEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="driver@email.com"
+        android:textColor="#FFFFFFCC"
+        android:textSize="13sp" />
+
+</LinearLayout>

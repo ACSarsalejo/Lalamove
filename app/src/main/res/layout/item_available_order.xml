@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="3dp"
+    app:cardBackgroundColor="#1E1E1E"
+    app:strokeColor="#2C2C2C"
+    app:strokeWidth="1dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Status Badge + Fare -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+            <TextView
+                android:id="@+id/orderStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PENDING"
+                android:textColor="#FF6B00"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:background="@drawable/status_chip_bg"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="3dp" />
+            <TextView
+                android:id="@+id/orderFare"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="₱216.00"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_alignParentEnd="true" />
+        </RelativeLayout>
+
+        <!-- Booking ID -->
+        <TextView
+            android:id="@+id/orderBookingId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ID: ..."
+            android:textColor="#555555"
+            android:textSize="11sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Pickup -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical">
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/circle_orange"
+                android:layout_marginEnd="12dp" />
+            <TextView
+                android:id="@+id/orderPickup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Pickup location"
+                android:textColor="#CCCCCC"
+                android:textSize="14sp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+        </LinearLayout>
+
+        <!-- Dropoff -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp"
+            android:gravity="center_vertical">
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/oval_bg"
+                android:layout_marginEnd="12dp" />
+            <TextView
+                android:id="@+id/orderDropoff"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Dropoff location"
+                android:textColor="#CCCCCC"
+                android:textSize="14sp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#2C2C2C" />
+
+        <!-- Bottom row: Vehicle type + Payment -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="10dp">
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_box"
+                app:tint="#555555"
+                android:layout_marginEnd="6dp" />
+            <TextView
+                android:id="@+id/orderVehicle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Motorcycle"
+                android:textColor="#888888"
+                android:textSize="12sp" />
+            <TextView
+                android:id="@+id/orderPayment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cash"
+                android:textColor="#888888"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginTop="32dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_handling"
+            app:tint="#FF6B00" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Handling instructions"
+            android:textColor="#222222"
+            android:textStyle="bold"
+            android:layout_marginStart="12dp" />
+    </LinearLayout>
+    
+    <include layout="@layout/item_detail_checkbox" android:id="@+id/cbNoSpecial" />
+    <include layout="@layout/item_detail_checkbox" android:id="@+id/cbFragile" />
+    <include layout="@layout/item_detail_checkbox" android:id="@+id/cbPerishable" />
+    <include layout="@layout/item_detail_checkbox" android:id="@+id/cbTemp" />
+    <include layout="@layout/item_detail_checkbox" android:id="@+id/cbDry" />
+</LinearLayout>

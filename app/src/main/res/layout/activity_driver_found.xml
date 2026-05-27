@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:gravity="center">
+
+    <!-- Checkmark circle -->
+    <FrameLayout
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="32dp">
+        <View
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:background="@drawable/pulse_circle" />
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_box"
+            app:tint="#FF6B00" />
+    </FrameLayout>
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Driver Found!"
+        android:textColor="#222222"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Driver message -->
+    <TextView
+        android:id="@+id/textDriverFoundMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Your driver has accepted the booking."
+        android:textColor="#444444"
+        android:textSize="16sp"
+        android:lineSpacingExtra="6dp"
+        android:gravity="center"
+        android:paddingHorizontal="40dp"
+        android:layout_marginBottom="48dp" />
+
+    <!-- Continue Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnContinueToOrder"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginHorizontal="40dp"
+        android:text="Continue"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        app:cornerRadius="14dp"
+        android:backgroundTint="#FF6B00" />
+
+</LinearLayout>

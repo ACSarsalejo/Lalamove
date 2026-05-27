@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="orange_main">#FF9800</color>
+    <color name="orange_dark">#F57C00</color>
+    <color name="orange_light">#FFE0B2</color>
+    <color name="orange_gradient_end">#E65000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="gray_light">#F5F5F5</color>
+    <color name="gray_dark">#666666</color>
+    <color name="surface_light">#FFF8F2</color>
+    <color name="text_primary">#1A1A1A</color>
+    <color name="text_secondary">#757575</color>
+    <color name="success_green">#4CAF50</color>
+    <color name="divider">#F0F0F0</color>
+</resources>

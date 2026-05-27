@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="none">
+        <item android:id="@+id/nav_driver_profile" android:title="My Profile" android:icon="@drawable/ic_phone" />
+        <item android:id="@+id/nav_driver_earnings" android:title="Earnings" android:icon="@drawable/ic_cash" />
+        <item android:id="@+id/nav_driver_wallet" android:title="Wallet" android:icon="@drawable/ic_coupon" />
+        <item android:id="@+id/nav_driver_settings" android:title="Settings" android:icon="@drawable/ic_note" />
+    </group>
+    <group android:checkableBehavior="none">
+        <item android:id="@+id/nav_driver_logout" android:title="Log Out" android:icon="@drawable/ic_search" />
+    </group>
+</menu>

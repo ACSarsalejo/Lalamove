@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
+
+    <!-- Search bar -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#FFFFFF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <ImageView
+                android:id="@+id/backButton"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_back"
+                app:tint="#333333"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/shape_pickup_dot"
+                android:layout_marginStart="14dp"
+                android:layout_marginEnd="12dp" />
+
+            <EditText
+                android:id="@+id/searchInput"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:hint="Search for a location..."
+                android:textSize="15sp"
+                android:textColor="#1A1A1A"
+                android:textColorHint="#AAAAAA"
+                android:inputType="text"
+                android:imeOptions="actionSearch"
+                android:maxLines="1"
+                android:singleLine="true" />
+
+            <ImageView
+                android:id="@+id/clearButton"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone"
+                android:layout_marginStart="8dp" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Status label -->
+    <TextView
+        android:id="@+id/resultsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Start typing to search"
+        android:textSize="12sp"
+        android:textColor="#888888"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="10dp"
+        android:background="#F5F5F5" />
+
+    <!-- Empty state -->
+    <TextView
+        android:id="@+id/emptyText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No locations found. Try a different search."
+        android:textSize="14sp"
+        android:textColor="#999999"
+        android:gravity="center"
+        android:padding="32dp"
+        android:visibility="gone" />
+
+    <!-- Results list -->
+    <ListView
+        android:id="@+id/listViewLandmarks"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#FFFFFF"
+        android:divider="#F0F0F0"
+        android:dividerHeight="1dp" />
+
+</LinearLayout>

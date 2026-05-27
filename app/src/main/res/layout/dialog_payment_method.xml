@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Payment Method"
+        android:textColor="#222222"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp"/>
+
+    <RadioGroup
+        android:id="@+id/rgPaymentType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <RadioButton
+            android:id="@+id/rbCash"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cash"
+            android:checked="true"
+            android:textColor="#444444"
+            android:buttonTint="#FF6B00"/>
+        <RadioButton
+            android:id="@+id/rbWallet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wallet"
+            android:textColor="#444444"
+            android:layout_marginStart="24dp"
+            android:buttonTint="#FF6B00"/>
+    </RadioGroup>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Paid By"
+        android:textColor="#222222"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"/>
+
+    <RadioGroup
+        android:id="@+id/rgPaidBy"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <RadioButton
+            android:id="@+id/rbSender"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sender"
+            android:checked="true"
+            android:textColor="#444444"
+            android:buttonTint="#FF6B00"/>
+        <RadioButton
+            android:id="@+id/rbReceiver"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Receiver"
+            android:textColor="#444444"
+            android:layout_marginStart="24dp"
+            android:buttonTint="#FF6B00"/>
+    </RadioGroup>
+
+</LinearLayout>

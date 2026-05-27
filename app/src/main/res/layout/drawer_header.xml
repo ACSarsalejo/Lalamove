@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FF6B00"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="48dp"
+    android:paddingBottom="24dp">
+
+    <!-- Avatar circle with placeholder/photo -->
+    <FrameLayout
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="12dp">
+
+        <!-- Placeholder shown when no photo -->
+        <ImageView
+            android:id="@+id/drawerAvatar"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_profile_placeholder"
+            android:scaleType="centerCrop" />
+
+        <!-- Hidden initials TextView kept for backward compat but unused -->
+        <TextView
+            android:id="@+id/drawerInitials"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:gravity="center"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#FF6B00"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/drawerName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Customer"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/drawerEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="#FFE0B2"
+        android:textSize="13sp"
+        android:layout_marginTop="2dp" />
+
+</LinearLayout>

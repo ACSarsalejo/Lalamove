@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- Full-screen MapView -->
+    <org.osmdroid.views.MapView
+        android:id="@+id/mapCustomerOrder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="true" />
+
+    <!-- Header & Top Banner Container (floating overlay at top) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:elevation="8dp">
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="#FFFFFF"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp">
+            <ImageView
+                android:id="@+id/btnBackOrderDetail"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_back"
+                app:tint="#222222"
+                android:contentDescription="Back" />
+            <TextView
+                android:id="@+id/textHeaderTitle"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="In Transit"
+                android:textColor="#222222"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_more"
+                app:tint="#222222"
+                android:contentDescription="More Options" />
+        </LinearLayout>
+
+        <!-- Status Banner -->
+        <LinearLayout
+            android:id="@+id/statusBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="12dp"
+            android:background="#FFF3E0">
+            <ImageView
+                android:id="@+id/statusIcon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_bell"
+                app:tint="#FF6B00"
+                android:layout_marginEnd="8dp" />
+            <View
+                android:id="@+id/statusIndicator"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:background="@drawable/pulse_circle"
+                android:layout_marginEnd="8dp"
+                android:visibility="gone" />
+            <TextView
+                android:id="@+id/textOrderStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Driver is heading to the pick-up point."
+                android:textColor="#FF6B00"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Bottom Sheet Container -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/bottomSheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_bottom_sheet"
+        android:elevation="16dp"
+        app:behavior_peekHeight="230dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Bottom Sheet Pull Handle -->
+            <View
+                android:layout_width="40dp"
+                android:layout_height="4dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="#DDDDDD" />
+
+            <!-- Driver Info Card (shown when driver is assigned) -->
+            <LinearLayout
+                android:id="@+id/driverProfileSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingBottom="16dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <!-- Profile Image (avatar) -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        app:cardCornerRadius="26dp"
+                        app:cardElevation="0dp"
+                        android:layout_marginEnd="16dp">
+                        <ImageView
+                            android:id="@+id/driverProfileImage"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_profile_placeholder"
+                            android:scaleType="centerCrop" />
+                    </androidx.cardview.widget.CardView>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/driverName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Ricardo Española"
+                            android:textColor="#222222"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <!-- Rating & Vehicle Detail Row -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginTop="2dp">
+                            
+                            <TextView
+                                android:id="@+id/driverRatingText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="⭐ 4.58"
+                                android:textColor="#FF6B00"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=" • "
+                                android:textColor="#888888"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/driverPlateAndVehicle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="ND69377 · Motorcycle"
+                                android:textColor="#666666"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Actions: Chat and Call Buttons -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="16dp"
+                    android:weightSum="2">
+
+                    <!-- Chat Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDriverChat"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:text="Chat"
+                        android:textColor="#222222"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        app:icon="@drawable/ic_chat"
+                        app:iconTint="#222222"
+                        app:iconGravity="textStart"
+                        app:cornerRadius="8dp"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        app:strokeColor="#DDDDDD" />
+
+                    <!-- Call Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDriverCall"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:text="Call"
+                        android:textColor="#222222"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        app:icon="@drawable/ic_phone"
+                        app:iconTint="#222222"
+                        app:iconGravity="textStart"
+                        app:cornerRadius="8dp"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        app:strokeColor="#DDDDDD" />
+                </LinearLayout>
+
+                <!-- Driver Message (detailed info) -->
+                <TextView
+                    android:id="@+id/driverMessage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Driver has accepted your booking and is on the way."
+                    android:textColor="#666666"
+                    android:textSize="13sp"
+                    android:layout_marginTop="12dp"
+                    android:lineSpacingExtra="2dp" />
+
+            </LinearLayout>
+
+            <!-- Separator -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#EEEEEE" />
+
+            <!-- Location Details (Pickup & Dropoff) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- Pickup -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+                    <View
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="@drawable/shape_pickup_dot" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="PICKUP"
+                            android:textColor="#AAAAAA"
+                            android:textSize="11sp"
+                            android:letterSpacing="0.1" />
+                        <TextView
+                            android:id="@+id/custDetailPickup"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Pickup"
+                            android:textColor="#222222"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Dropoff -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <View
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="@drawable/shape_dropoff_dot" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="DROP-OFF"
+                            android:textColor="#AAAAAA"
+                            android:textSize="11sp"
+                            android:letterSpacing="0.1" />
+                        <TextView
+                            android:id="@+id/custDetailDropoff"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Dropoff"
+                            android:textColor="#222222"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="8dp" android:background="#F5F5F5" />
+
+            <!-- Order Information -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Order Information"
+                    android:textColor="#888888"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Order ID -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Order ID" android:textColor="#AAAAAA" android:textSize="12sp" />
+                    <TextView android:id="@+id/custDetailOrderId" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="..." android:textColor="#222222" android:textSize="14sp" android:textStyle="bold" android:layout_marginTop="2dp" />
+                </LinearLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginBottom="16dp" />
+
+                <!-- Vehicle Type -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Vehicle Type" android:textColor="#AAAAAA" android:textSize="12sp" />
+                    <TextView android:id="@+id/custDetailVehicle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Motorcycle" android:textColor="#222222" android:textSize="14sp" android:textStyle="bold" android:layout_marginTop="2dp" />
+                </LinearLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginBottom="16dp" />
+
+                <!-- Payment -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Payment" android:textColor="#AAAAAA" android:textSize="12sp" />
+                    <TextView android:id="@+id/custDetailPayment" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cash" android:textColor="#222222" android:textSize="14sp" android:textStyle="bold" android:layout_marginTop="2dp" />
+                </LinearLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginBottom="16dp" />
+
+                <!-- Notes -->
+                <LinearLayout
+                    android:id="@+id/custDetailNotesSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp"
+                    android:visibility="gone">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Driver Notes" android:textColor="#AAAAAA" android:textSize="12sp" />
+                    <TextView android:id="@+id/custDetailNotes" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="#222222" android:textSize="14sp" android:layout_marginTop="2dp" />
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginTop="16dp" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" />
+
+            <!-- Total Amount -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="20dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Total Amount"
+                    android:textColor="#222222"
+                    android:textSize="15sp"
+                    android:layout_centerVertical="true" />
+                <TextView
+                    android:id="@+id/custDetailTotalFare"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="₱0.00"
+                    android:textColor="#FF6B00"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+
+            <!-- Cancel Button -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="20dp"
+                android:gravity="center">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancelOrder"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:text="Cancel Order"
+                    android:textColor="#E53935"
+                    android:textStyle="bold"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    app:strokeColor="#E53935"
+                    app:cornerRadius="12dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- Bottom spacing so scrolling clears navigation bars -->
+            <View android:layout_width="match_parent" android:layout_height="80dp" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Bottom Action Bar (shown conditionally) -->
+    <LinearLayout
+        android:id="@+id/bottomActionBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#FFFFFF"
+        android:elevation="24dp"
+        android:padding="20dp"
+        android:visibility="gone">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOrderAction"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Confirm Received"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            app:cornerRadius="12dp"
+            android:backgroundTint="#FF6B00" />
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

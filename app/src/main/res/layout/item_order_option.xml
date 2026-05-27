@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="20dp"
+    android:paddingHorizontal="4dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?attr/selectableItemBackground">
+    <ImageView
+        android:id="@+id/optIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_box"
+        app:tint="#FF6B00" />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/optIcon"
+        android:layout_toStartOf="@+id/endIcon"
+        android:layout_marginStart="16dp"
+        android:layout_centerVertical="true"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/optTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add your delivery item details"
+            android:textColor="#AAAAAA"
+            android:textSize="14sp" />
+        <TextView
+            android:id="@+id/optSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#888888"
+            android:textSize="12sp"
+            android:visibility="gone"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
+    <ImageView
+        android:id="@+id/endIcon"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_search"
+        app:tint="#CCCCCC"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true" />
+</RelativeLayout>

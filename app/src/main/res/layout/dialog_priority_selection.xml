@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:paddingBottom="24dp">
+
+    <!-- Handle bar -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="4dp"
+        android:background="#CCCCCC" />
+
+    <!-- Header row: title + distance -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="14dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Select Service Type"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#1A1A1A" />
+
+        <TextView
+            android:id="@+id/tvSheetDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="13sp"
+            android:textColor="#FF6B00"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- Priority card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardPriority"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="8dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:strokeColor="#EEEEEE"
+        app:strokeWidth="1dp"
+        app:cardBackgroundColor="#FFFFFF"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="14dp">
+            <TextView
+                android:id="@+id/badgePriority"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:text="⚡"
+                android:textSize="16sp"
+                android:gravity="center"
+                android:background="#FFF3E0"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="12dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_toEndOf="@id/badgePriority"
+                android:layout_toStartOf="@+id/tvPriorityPrice"
+                android:layout_centerVertical="true">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Priority"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A1A1A" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Quickest delivery option. As fast as &lt;1 hr delivery time"
+                    android:textSize="11sp"
+                    android:textColor="#888888"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/tvPriorityPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="₱—"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#1A1A1A"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Regular card (default selected) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardRegular"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="8dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:strokeColor="#FF6B00"
+        app:strokeWidth="1.5dp"
+        app:cardBackgroundColor="#FFF5EE"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="14dp">
+            <TextView
+                android:id="@+id/badgeRegular"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:text="ⓘ"
+                android:textSize="18sp"
+                android:gravity="center"
+                android:background="#FFE8D6"
+                android:textColor="#FF6B00"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="12dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_toEndOf="@id/badgeRegular"
+                android:layout_toStartOf="@+id/tvRegularPrice"
+                android:layout_centerVertical="true">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Regular"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A1A1A" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Standard delivery. Typically 1–2 hr delivery time"
+                    android:textSize="11sp"
+                    android:textColor="#888888"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/tvRegularPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="₱—"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#FF6B00"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Pooling card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardPooling"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="20dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:strokeColor="#EEEEEE"
+        app:strokeWidth="1dp"
+        app:cardBackgroundColor="#FFFFFF"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="14dp">
+            <TextView
+                android:id="@+id/badgePooling"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:text="%"
+                android:textSize="16sp"
+                android:gravity="center"
+                android:background="#E8F5E9"
+                android:textColor="#388E3C"
+                android:textStyle="bold"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="12dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_toEndOf="@id/badgePooling"
+                android:layout_toStartOf="@+id/tvPoolingPrice"
+                android:layout_centerVertical="true">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pooling"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A1A1A" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Most affordable price. Delivery may take 2 hrs"
+                    android:textSize="11sp"
+                    android:textColor="#888888"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/tvPoolingPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="₱—"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#1A1A1A"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Next button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnProceed"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginHorizontal="16dp"
+        android:text="Next"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        app:cornerRadius="16dp"
+        android:backgroundTint="#FF6B00" />
+
+</LinearLayout>

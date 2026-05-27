@@ -1,0 +1,347 @@
+-- LALAMOVE DATABASE EXPORT
+-- Generated: 2026-05-12 01:26:25
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS `accounts`;
+CREATE TABLE `accounts` (
+  `Acct_Id` int NOT NULL AUTO_INCREMENT,
+  `Acct_Email` varchar(150) NOT NULL,
+  `Acct_Phone` varchar(20) NOT NULL,
+  `Acct_Password` varchar(255) NOT NULL,
+  `Acct_Role` enum('customer','driver','admin') NOT NULL DEFAULT 'customer',
+  `Acct_MustChangePassword` tinyint(1) DEFAULT '0',
+  `Acct_Status` enum('active','inactive','suspended') DEFAULT 'active',
+  `Acct_LastLogin` datetime DEFAULT NULL,
+  `Acct_CreatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `Acct_UpdatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`Acct_Id`),
+  UNIQUE KEY `Acct_Email` (`Acct_Email`),
+  UNIQUE KEY `Acct_Phone` (`Acct_Phone`),
+  KEY `idx_email` (`Acct_Email`),
+  KEY `idx_phone` (`Acct_Phone`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `accounts` VALUES('2','shin@gmail.com','+6309935898770','$2y$10$K2zkpkJZiJrzz8hgtA21WuBnWKR/RGdlGNumGr/cnOU.YxjsRisIG','customer','0','active','2026-05-07 18:23:09','2026-04-21 02:06:24','2026-05-07 18:23:09');
+INSERT INTO `accounts` VALUES('3','shiko@gmail.com','+6309935898779','$2y$10$5mqtRty0kTbX3opZGKIEJ.tyf0GgaVqHQei/yA9NMlGG6Fu06zw1e','customer','0','active','2026-04-21 02:13:06','2026-04-21 02:07:40','2026-04-21 02:13:06');
+INSERT INTO `accounts` VALUES('5','jamesestacion@gmail.com','+6309192198198','$2y$10$kqZg7qALt3brEWzr4TNMvO5p6GThQbWaDGRTl1mp92g2nX9pzYjHu','driver','0','active','2026-05-07 20:02:01','2026-05-07 14:33:11','2026-05-07 20:02:01');
+
+DROP TABLE IF EXISTS `admin`;
+CREATE TABLE `admin` (
+  `Admin_ID` int NOT NULL AUTO_INCREMENT,
+  `Admin_Username` varchar(50) NOT NULL,
+  `Admin_Password` varchar(255) NOT NULL,
+  `Admin_Name` varchar(100) NOT NULL,
+  `Admin_CreatedAt` datetime DEFAULT CURRENT_TIMESTAMP,
+  `Admin_LastLogin` datetime DEFAULT NULL,
+  PRIMARY KEY (`Admin_ID`),
+  UNIQUE KEY `Admin_Username` (`Admin_Username`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `admin` VALUES('1','Achilly Sarsalejo','$2y$10$wtKhMDlGWAvcTqsiSPxmV.XWjHsjfnGRUTIt0iwowH4WDyaHNAqp2','Achilly Ceasar B. Sarsalejo','2026-05-06 00:53:35','2026-05-07 20:24:05');
+
+DROP TABLE IF EXISTS `booking`;
+CREATE TABLE `booking` (
+  `Book_ID` int NOT NULL AUTO_INCREMENT,
+  `Book_CustID` int NOT NULL,
+  `Book_DrvrID` int DEFAULT NULL,
+  `Book_VhclTypeID` varchar(20) NOT NULL,
+  `Book_TotalFare` decimal(10,2) DEFAULT NULL,
+  `Book_Status` enum('pending','driver_assigned','driver_en_route','picked_up','delivered','cancelled') DEFAULT 'pending',
+  `Book_ScheduledTime` datetime DEFAULT NULL,
+  `Book_CreatedAt` datetime DEFAULT CURRENT_TIMESTAMP,
+  `Book_Pickuploc` text NOT NULL,
+  `Book_Dropoffloc` text,
+  `Book_Notes` text,
+  `Book_AddServices` text,
+  `Book_IsRated` tinyint(1) DEFAULT '0',
+  `Book_RatingGiven` int DEFAULT NULL,
+  PRIMARY KEY (`Book_ID`),
+  KEY `Book_CustID` (`Book_CustID`),
+  KEY `Book_DrvrID` (`Book_DrvrID`),
+  CONSTRAINT `booking_ibfk_1` FOREIGN KEY (`Book_CustID`) REFERENCES `customer` (`Cust_ID`) ON DELETE CASCADE,
+  CONSTRAINT `booking_ibfk_2` FOREIGN KEY (`Book_DrvrID`) REFERENCES `driver` (`Drvr_ID`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `booking` VALUES('1','2','2','motorcycle','199.00','delivered','2026-05-08 18:16:00','2026-04-27 18:14:07','10.29797, 123.88694','10.32820, 123.92677',NULL,NULL,'1','3');
+INSERT INTO `booking` VALUES('2','2','2','motorcycle','429.00','delivered','2026-04-27 18:40:00','2026-04-27 18:40:49','10.28344, 123.86720','10.37649, 123.95664',NULL,NULL,'1','5');
+INSERT INTO `booking` VALUES('3','2','2','motorcycle','221.00','delivered','2026-04-27 18:55:00','2026-04-27 18:55:49','10.30118, 123.87527','10.32803, 123.92660',NULL,NULL,'1',NULL);
+INSERT INTO `booking` VALUES('4','2',NULL,'motorcycle','130.00','cancelled','2026-04-27 18:56:00','2026-04-27 18:56:36','10.31486, 123.91201','10.33233, 123.93149',NULL,NULL,'0',NULL);
+INSERT INTO `booking` VALUES('5','2',NULL,'motorcycle','192.00','cancelled','2026-04-27 19:32:00','2026-04-27 19:33:12','10.32769, 123.92840','10.30438, 123.88806','pLS HANDLE MY SHI','Require driver to show Face and Driver app Profile','0',NULL);
+INSERT INTO `booking` VALUES('6','2','2','motorcycle','254.00','cancelled','2026-04-27 19:49:00','2026-04-27 19:49:40','10.30050, 123.88875','10.32094, 123.91793','hello','Extra waiting time, Require driver to show Face and Driver app Profile','0',NULL);
+INSERT INTO `booking` VALUES('7','2','2','motorcycle','177.00','delivered','2026-05-07 14:22:04','2026-05-07 20:22:04','10.29738, 123.90403','10.32811, 123.93338','','Extra waiting time','1','1');
+
+DROP TABLE IF EXISTS `business_profile`;
+CREATE TABLE `business_profile` (
+  `Bsns_ID` int NOT NULL AUTO_INCREMENT,
+  `Bsns_CompanyName` varchar(100) DEFAULT NULL,
+  `Bsns_Industry` varchar(50) DEFAULT NULL,
+  `Bsns_JobTitle` varchar(50) DEFAULT NULL,
+  `Bsns_Address` text,
+  `Bsns_RegistrationNum` varchar(50) DEFAULT NULL,
+  `Bsns_City` varchar(50) DEFAULT NULL,
+  `Bsns_EstDeliveryVol` int DEFAULT NULL,
+  `Bsns_FrequentlyUsedVehicle` varchar(50) DEFAULT NULL,
+  `Bsns_PrefferedContact` varchar(50) DEFAULT NULL,
+  `Bsns_CertificatePhoto` varchar(255) DEFAULT NULL,
+  `Bsns_CustID` int DEFAULT NULL,
+  PRIMARY KEY (`Bsns_ID`),
+  KEY `Bsns_CustID` (`Bsns_CustID`),
+  CONSTRAINT `business_profile_ibfk_1` FOREIGN KEY (`Bsns_CustID`) REFERENCES `customer` (`Cust_ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+DROP TABLE IF EXISTS `coupon`;
+CREATE TABLE `coupon` (
+  `Coup_ID` int NOT NULL AUTO_INCREMENT,
+  `Coup_Code` varchar(50) NOT NULL,
+  `Coup_DiscountValue` decimal(10,2) NOT NULL,
+  `Coup_Type` enum('fixed','percentage') DEFAULT 'fixed',
+  `Coup_MinSpend` decimal(10,2) DEFAULT '0.00',
+  `Coup_ExpiryDate` date NOT NULL,
+  `Coup_IsActive` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`Coup_ID`),
+  UNIQUE KEY `Coup_Code` (`Coup_Code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+DROP TABLE IF EXISTS `customer`;
+CREATE TABLE `customer` (
+  `Cust_ID` int NOT NULL AUTO_INCREMENT,
+  `Cust_AcctId` int DEFAULT NULL,
+  `Cust_firstName` varchar(50) NOT NULL,
+  `Cust_lastName` varchar(50) NOT NULL,
+  `Cust_Phone` varchar(20) NOT NULL,
+  `Cust_Email` varchar(100) NOT NULL,
+  `Cust_IsBanned` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`Cust_ID`),
+  UNIQUE KEY `Cust_Phone` (`Cust_Phone`),
+  UNIQUE KEY `Cust_Email` (`Cust_Email`),
+  UNIQUE KEY `Cust_AcctId` (`Cust_AcctId`),
+  CONSTRAINT `customer_ibfk_1` FOREIGN KEY (`Cust_AcctId`) REFERENCES `accounts` (`Acct_Id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `customer` VALUES('2','2','Achilly','Godzilla','+6309935898770','shin@gmail.com','0');
+INSERT INTO `customer` VALUES('3','3','shiko','tantan','+6309935898779','shiko@gmail.com','0');
+
+DROP TABLE IF EXISTS `delivery`;
+CREATE TABLE `delivery` (
+  `Dlvr_ID` int NOT NULL AUTO_INCREMENT,
+  `Dlvr_BookID` int NOT NULL,
+  `Dlvr_StopNumber` int NOT NULL,
+  `Dlvr_Address` text NOT NULL,
+  `Dlvr_ContactName` varchar(100) DEFAULT NULL,
+  `Dlvr_ContactPhone` varchar(20) DEFAULT NULL,
+  `Dlvr_Status` enum('pending','arrived','completed') DEFAULT 'pending',
+  `Dlvr_ProofOfDelivery` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`Dlvr_ID`),
+  KEY `Dlvr_BookID` (`Dlvr_BookID`),
+  CONSTRAINT `delivery_ibfk_1` FOREIGN KEY (`Dlvr_BookID`) REFERENCES `booking` (`Book_ID`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `delivery` VALUES('1','1','1','10.32820, 123.92677',NULL,NULL,'completed',NULL);
+INSERT INTO `delivery` VALUES('2','2','1','10.37649, 123.95664',NULL,NULL,'completed',NULL);
+INSERT INTO `delivery` VALUES('3','3','1','10.32803, 123.92660',NULL,NULL,'completed',NULL);
+INSERT INTO `delivery` VALUES('4','4','1','10.33233, 123.93149',NULL,NULL,'pending',NULL);
+INSERT INTO `delivery` VALUES('5','5','1','10.30438, 123.88806',NULL,NULL,'pending',NULL);
+INSERT INTO `delivery` VALUES('6','6','1','10.32094, 123.91793',NULL,NULL,'completed',NULL);
+INSERT INTO `delivery` VALUES('7','7','1','10.32811, 123.93338',NULL,NULL,'completed',NULL);
+
+DROP TABLE IF EXISTS `dispute`;
+CREATE TABLE `dispute` (
+  `Disp_ID` int NOT NULL AUTO_INCREMENT,
+  `Disp_BookID` int NOT NULL,
+  `Disp_ReporterType` enum('customer','driver') NOT NULL,
+  `Disp_ReporterID` int NOT NULL,
+  `Disp_Subject` varchar(200) NOT NULL,
+  `Disp_Details` text,
+  `Disp_Status` enum('open','in_review','resolved','rejected') DEFAULT 'open',
+  `Disp_Resolution` text,
+  `Disp_CreatedAt` datetime DEFAULT CURRENT_TIMESTAMP,
+  `Disp_ResolvedAt` datetime DEFAULT NULL,
+  PRIMARY KEY (`Disp_ID`),
+  KEY `Disp_BookID` (`Disp_BookID`),
+  CONSTRAINT `dispute_ibfk_1` FOREIGN KEY (`Disp_BookID`) REFERENCES `booking` (`Book_ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+DROP TABLE IF EXISTS `driver`;
+CREATE TABLE `driver` (
+  `Drvr_ID` int NOT NULL AUTO_INCREMENT,
+  `Drvr_AcctId` int DEFAULT NULL,
+  `Drvr_firstName` varchar(50) NOT NULL,
+  `Drvr_LastName` varchar(50) NOT NULL,
+  `Drvr_VhclTypeID` varchar(20) DEFAULT NULL,
+  `Drvr_PhoneNum` varchar(20) NOT NULL,
+  `Drvr_LicenseNum` varchar(50) NOT NULL,
+  `Drvr_LicensePhoto` varchar(255) DEFAULT NULL,
+  `Drvr_ProfilePhoto` varchar(255) DEFAULT NULL,
+  `Drvr_Rating` decimal(3,2) DEFAULT '0.00',
+  `Drvr_RatingCount` int DEFAULT '0',
+  `Drvr_WalletBalance` decimal(12,2) DEFAULT '0.00',
+  `Drvr_CommissionRate` decimal(4,2) DEFAULT '0.80',
+  `Drvr_Status` enum('offline','online','on_delivery','busy') DEFAULT 'offline',
+  `Drvr_IsVerified` tinyint(1) DEFAULT '0',
+  `Drvr_VehicleID` int DEFAULT NULL,
+  `Drvr_AreaID` int DEFAULT NULL,
+  PRIMARY KEY (`Drvr_ID`),
+  UNIQUE KEY `Drvr_PhoneNum` (`Drvr_PhoneNum`),
+  UNIQUE KEY `Drvr_LicenseNum` (`Drvr_LicenseNum`),
+  KEY `Drvr_VehicleID` (`Drvr_VehicleID`),
+  KEY `Drvr_AreaID` (`Drvr_AreaID`),
+  CONSTRAINT `driver_ibfk_1` FOREIGN KEY (`Drvr_VehicleID`) REFERENCES `vehicle` (`Vhcl_ID`) ON DELETE SET NULL,
+  CONSTRAINT `driver_ibfk_2` FOREIGN KEY (`Drvr_AreaID`) REFERENCES `service_area` (`Area_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `driver` VALUES('2','5','James','Estacion','motorcycle','+6309192198198','G35-26-000528','uploads/drivers/license_5_1778135591.png','0','3.50','4','524.00','0.80','online','1','2','1');
+
+DROP TABLE IF EXISTS `fareconfig`;
+CREATE TABLE `fareconfig` (
+  `Fare_ID` int NOT NULL AUTO_INCREMENT,
+  `Fare_VhclType` varchar(20) NOT NULL,
+  `Fare_Label` varchar(50) NOT NULL,
+  `Fare_Emoji` varchar(10) DEFAULT NULL,
+  `Fare_BaseFare` decimal(10,2) NOT NULL,
+  `Fare_PerKm` decimal(10,2) NOT NULL,
+  `Fare_IsActive` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`Fare_ID`),
+  UNIQUE KEY `Fare_VhclType` (`Fare_VhclType`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `fareconfig` VALUES('1','motorcycle','Motorcycle','?','40.00','15.00','1');
+INSERT INTO `fareconfig` VALUES('2','sedan','200 kg Sedan','?','60.00','22.00','1');
+INSERT INTO `fareconfig` VALUES('3','suv_small','300 kg Subcompact SUV','?','70.00','26.00','1');
+INSERT INTO `fareconfig` VALUES('4','suv_large','600 kg 7-seater SUV','?','85.00','30.00','1');
+INSERT INTO `fareconfig` VALUES('5','van','1000 kg Closed Van','?','110.00','38.00','1');
+INSERT INTO `fareconfig` VALUES('6','truck','2000 kg Large Truck','?','160.00','52.00','1');
+
+DROP TABLE IF EXISTS `item`;
+CREATE TABLE `item` (
+  `Item_ID` int NOT NULL AUTO_INCREMENT,
+  `Item_DlvrID` int NOT NULL,
+  `Item_Name` varchar(100) NOT NULL,
+  `Item_Category` varchar(50) DEFAULT NULL,
+  `Item_Quantity` int DEFAULT '1',
+  `Item_Size` varchar(20) DEFAULT NULL,
+  `Item_WeightKG` decimal(8,2) DEFAULT NULL,
+  `Item_Photo` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`Item_ID`),
+  KEY `Item_DlvrID` (`Item_DlvrID`),
+  CONSTRAINT `item_ibfk_1` FOREIGN KEY (`Item_DlvrID`) REFERENCES `delivery` (`Dlvr_ID`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `item` VALUES('1','1','Ipad Touch','Electronics and gadgets','1','Small','4.99',NULL);
+INSERT INTO `item` VALUES('2','2','Package','','0','Select size','0.00',NULL);
+INSERT INTO `item` VALUES('3','3','Package','','0','Select size','0.00',NULL);
+INSERT INTO `item` VALUES('4','4','Ipod MAX','Electronics and gadgets, Others','1','Small','4.99',NULL);
+INSERT INTO `item` VALUES('5','5','office desk','Others','1','Small','4.99',NULL);
+INSERT INTO `item` VALUES('6','6','Package','','0','Select size','0.00',NULL);
+INSERT INTO `item` VALUES('7','7','Package','','0','Select size','0.00',NULL);
+
+DROP TABLE IF EXISTS `movementlog`;
+CREATE TABLE `movementlog` (
+  `Move_ID` int NOT NULL AUTO_INCREMENT,
+  `Move_BookID` int NOT NULL,
+  `Move_Status` enum('driver_en_route','picked_up','delivered') NOT NULL,
+  `Move_Latitude` decimal(10,8) DEFAULT NULL,
+  `Move_Longitude` decimal(11,8) DEFAULT NULL,
+  `Move_LoggedAt` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`Move_ID`),
+  KEY `Move_BookID` (`Move_BookID`),
+  CONSTRAINT `movementlog_ibfk_1` FOREIGN KEY (`Move_BookID`) REFERENCES `booking` (`Book_ID`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `movementlog` VALUES('1','6','driver_en_route',NULL,NULL,'2026-05-07 14:34:52');
+INSERT INTO `movementlog` VALUES('2','6','picked_up',NULL,NULL,'2026-05-07 14:34:55');
+INSERT INTO `movementlog` VALUES('3','6','delivered',NULL,NULL,'2026-05-07 14:34:59');
+INSERT INTO `movementlog` VALUES('4','3','driver_en_route',NULL,NULL,'2026-05-07 18:22:39');
+INSERT INTO `movementlog` VALUES('5','3','picked_up',NULL,NULL,'2026-05-07 18:22:41');
+INSERT INTO `movementlog` VALUES('6','3','delivered',NULL,NULL,'2026-05-07 18:22:45');
+INSERT INTO `movementlog` VALUES('7','2','driver_en_route',NULL,NULL,'2026-05-07 20:02:05');
+INSERT INTO `movementlog` VALUES('8','2','picked_up',NULL,NULL,'2026-05-07 20:02:06');
+INSERT INTO `movementlog` VALUES('9','2','delivered',NULL,NULL,'2026-05-07 20:02:09');
+INSERT INTO `movementlog` VALUES('10','1','driver_en_route',NULL,NULL,'2026-05-07 20:21:31');
+INSERT INTO `movementlog` VALUES('11','1','picked_up',NULL,NULL,'2026-05-07 20:21:33');
+INSERT INTO `movementlog` VALUES('12','1','delivered',NULL,NULL,'2026-05-07 20:21:35');
+INSERT INTO `movementlog` VALUES('13','7','driver_en_route',NULL,NULL,'2026-05-07 20:22:10');
+INSERT INTO `movementlog` VALUES('14','7','picked_up',NULL,NULL,'2026-05-07 20:22:12');
+INSERT INTO `movementlog` VALUES('15','7','delivered',NULL,NULL,'2026-05-07 20:22:14');
+
+DROP TABLE IF EXISTS `payment`;
+CREATE TABLE `payment` (
+  `Paym_ID` int NOT NULL AUTO_INCREMENT,
+  `Paym_BookID` int NOT NULL,
+  `Paym_CoupID` int DEFAULT NULL,
+  `Paym_Method` enum('cash','wallet','credit_card') NOT NULL,
+  `Paym_AmountPaid` decimal(10,2) NOT NULL,
+  `Paym_Status` enum('pending','completed','failed','refunded') DEFAULT 'pending',
+  `Paym_PaidAt` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`Paym_ID`),
+  KEY `Paym_BookID` (`Paym_BookID`),
+  KEY `Paym_CoupID` (`Paym_CoupID`),
+  CONSTRAINT `payment_ibfk_1` FOREIGN KEY (`Paym_BookID`) REFERENCES `booking` (`Book_ID`) ON DELETE CASCADE,
+  CONSTRAINT `payment_ibfk_2` FOREIGN KEY (`Paym_CoupID`) REFERENCES `coupon` (`Coup_ID`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+DROP TABLE IF EXISTS `service_area`;
+CREATE TABLE `service_area` (
+  `Area_id` int NOT NULL AUTO_INCREMENT,
+  `Area_city` varchar(50) NOT NULL,
+  `Area_region` varchar(50) NOT NULL,
+  `Area_zipcode` varchar(10) DEFAULT NULL,
+  `Area_isActive` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`Area_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `service_area` VALUES('1','Cebu','Islandwide',NULL,'1');
+
+DROP TABLE IF EXISTS `transaction`;
+CREATE TABLE `transaction` (
+  `Tran_ID` int NOT NULL AUTO_INCREMENT,
+  `Tran_TargetType` enum('customer','driver') NOT NULL,
+  `Tran_TargetID` int NOT NULL,
+  `Tran_Type` enum('topup','payment','earnings','refund','deduction') NOT NULL,
+  `Tran_Amount` decimal(12,2) NOT NULL,
+  `Tran_ReferenceNum` varchar(100) DEFAULT NULL,
+  `Tran_Date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`Tran_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `transaction` VALUES('1','driver','2','earnings','203.20','BOOK-6','2026-05-07 14:34:59');
+INSERT INTO `transaction` VALUES('2','driver','2','earnings','176.80','BOOK-3','2026-05-07 18:22:45');
+INSERT INTO `transaction` VALUES('3','driver','2','earnings','343.20','BOOK-2','2026-05-07 20:02:09');
+INSERT INTO `transaction` VALUES('4','driver','2','earnings','159.20','BOOK-1','2026-05-07 20:21:35');
+INSERT INTO `transaction` VALUES('5','driver','2','earnings','141.60','BOOK-7','2026-05-07 20:22:14');
+INSERT INTO `transaction` VALUES('6','driver','2','deduction','500.00','CASHOUT-1778156573','2026-05-07 20:22:53');
+
+DROP TABLE IF EXISTS `vehicle`;
+CREATE TABLE `vehicle` (
+  `Vhcl_ID` int NOT NULL AUTO_INCREMENT,
+  `Vhcl_TypeID` varchar(20) NOT NULL,
+  `Vhcl_PlateNumber` varchar(20) NOT NULL,
+  `Vhcl_Model` varchar(50) DEFAULT NULL,
+  `Vhcl_Year` int DEFAULT NULL,
+  `Vhcl_Color` varchar(30) DEFAULT NULL,
+  `Vhcl_Photo_OR` varchar(255) DEFAULT NULL,
+  `Vhcl_Photo_CR` varchar(255) DEFAULT NULL,
+  `Vhcl_Status` enum('pending','verified','rejected','inactive') DEFAULT 'pending',
+  PRIMARY KEY (`Vhcl_ID`),
+  UNIQUE KEY `Vhcl_PlateNumber` (`Vhcl_PlateNumber`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `vehicle` VALUES('2','motorcycle','KBK 2987','2015','2026','White','uploads/drivers/or_2_1778135591.jpg','uploads/drivers/cr_2_1778135591.jpg','pending');
+
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+
+/* 
+TERMINAL COMMANDS FOR TRANSFER:
+
+1. To Export (Current PC):
+   mysqldump -u root -p lalamove > lalamove_database.txt
+
+2. To Import (New PC):
+   mysql -u root -p lalamove < lalamove_database.txt
+*/

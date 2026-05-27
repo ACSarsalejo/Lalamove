@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="LoginTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/orange_main</item>
+        <item name="boxStrokeWidth">2dp</item>
+        <item name="hintTextColor">@color/orange_main</item>
+    </style>
+</resources>

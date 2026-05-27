@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginBottom="10dp">
+
+    <!-- Vehicle selection card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/vehicleCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:strokeColor="#EEEEEE"
+        app:strokeWidth="1dp"
+        app:cardBackgroundColor="#FFFFFF">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+            <ImageView
+                android:id="@+id/vehicleIcon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:src="@drawable/ic_search"
+                android:scaleType="fitCenter"
+                android:layout_centerVertical="true" />
+            <LinearLayout
+                android:id="@+id/vehicleTextGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_toEndOf="@id/vehicleIcon"
+                android:layout_toStartOf="@id/vehicleCheck"
+                android:layout_marginStart="16dp"
+                android:layout_centerVertical="true">
+                <TextView
+                    android:id="@+id/vehicleTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Vehicle Type"
+                    android:textColor="#1A1A1A"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/vehicleSub"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Weight Capacity"
+                    android:textColor="#888888"
+                    android:textSize="12sp"
+                    android:layout_marginTop="3dp" />
+            </LinearLayout>
+            <ImageView
+                android:id="@+id/vehicleCheck"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_check_selected"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:visibility="gone" />
+        </RelativeLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Additional services: appears inline below this vehicle when selected + locations set -->
+    <LinearLayout
+        android:id="@+id/vehicleExpansion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:paddingTop="10dp"
+        android:paddingBottom="4dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Additional services"
+            android:textColor="#1A1A1A"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Extra waiting time -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/svcQueue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#EEEEEE"
+            app:strokeWidth="1dp"
+            android:layout_marginBottom="8dp"
+            android:clickable="true"
+            android:focusable="true">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="14dp">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_toStartOf="@+id/tvSvcQueuePrice"
+                    android:layout_marginEnd="8dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Extra waiting time (queueing service)"
+                        android:textColor="#1A1A1A"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Driver waits longer at pickup/dropoff"
+                        android:textColor="#888888"
+                        android:textSize="11sp"
+                        android:layout_marginTop="2dp" />
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/tvSvcQueuePrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="+₱70.00"
+                    android:textColor="#1A1A1A"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true" />
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Face and Driver Profile (default on) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/svcFaceProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#FF6B00"
+            app:strokeWidth="1dp"
+            app:cardBackgroundColor="#FFF8F2"
+            android:layout_marginBottom="8dp"
+            android:clickable="true"
+            android:focusable="true">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="14dp">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_toStartOf="@+id/tvSvcFacePrice"
+                    android:layout_marginEnd="8dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Require driver to show Face and Driver app Profile"
+                        android:textColor="#1A1A1A"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Verify identity before pickup"
+                        android:textColor="#888888"
+                        android:textSize="11sp"
+                        android:layout_marginTop="2dp" />
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/tvSvcFacePrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="+₱0.00"
+                    android:textColor="#1A1A1A"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true" />
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Thermal bag -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/svcThermal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#EEEEEE"
+            app:strokeWidth="1dp"
+            android:layout_marginBottom="4dp"
+            android:clickable="true"
+            android:focusable="true">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="14dp">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_toStartOf="@+id/tvSvcThermalPrice"
+                    android:layout_marginEnd="8dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Thermal bag"
+                        android:textColor="#1A1A1A"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Keep food warm during delivery"
+                        android:textColor="#888888"
+                        android:textSize="11sp"
+                        android:layout_marginTop="2dp" />
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/tvSvcThermalPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="+₱0.00"
+                    android:textColor="#1A1A1A"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true" />
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+</LinearLayout>

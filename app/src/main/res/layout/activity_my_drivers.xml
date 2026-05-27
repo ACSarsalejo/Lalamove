@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
+
+    <!-- Orange Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:background="#FF6B00">
+
+        <ImageView
+            android:id="@+id/btnBackDrivers"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_back"
+            android:tint="#FFFFFF"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="My Drivers"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginStart="8dp" />
+
+    </LinearLayout>
+
+    <!-- Tab Strip -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:background="#FFFFFF">
+
+        <TextView
+            android:id="@+id/tabFavourites"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:text="Favourites"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#FF6B00"
+            android:gravity="center"
+            android:background="@drawable/tab_selected" />
+
+        <TextView
+            android:id="@+id/tabBlocked"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:text="Blocked"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#888888"
+            android:gravity="center"
+            android:background="@drawable/tab_unselected" />
+
+    </LinearLayout>
+
+    <View
+        android:id="@+id/driverTabDivider"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#FF6B00" />
+
+    <!-- Loading indicator -->
+    <ProgressBar
+        android:id="@+id/driversProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <!-- Empty state -->
+    <LinearLayout
+        android:id="@+id/emptyDrivers"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/emptyDriversIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⭐"
+            android:textSize="48sp"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/emptyDriversText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No favourite drivers yet"
+            android:textColor="#888888"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Star a driver after your delivery to save them here"
+            android:textColor="#AAAAAA"
+            android:textSize="12sp"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:paddingHorizontal="32dp" />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerDrivers"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp"
+        android:clipToPadding="false"
+        android:visibility="gone" />
+
+</LinearLayout>

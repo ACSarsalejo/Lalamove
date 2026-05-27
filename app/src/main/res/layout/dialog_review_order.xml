@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_bottom_sheet"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Review and place your order"
+        android:textColor="#222222"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Pick-up time -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Pick-up time"
+        android:textColor="#888888"
+        android:textSize="14sp" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Now"
+        android:textColor="#222222"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginBottom="16dp" />
+
+    <!-- Locations -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="4dp">
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_search"
+                app:tint="#FF6B00" />
+            <View
+                android:layout_width="2dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:background="@drawable/dotted_line"
+                android:layout_marginVertical="4dp" />
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_search"
+                app:tint="#FF6B00" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/reviewPickup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Pickup location"
+                android:textColor="#222222"
+                android:textSize="16sp"
+                android:layout_marginBottom="24dp"/>
+            <TextView
+                android:id="@+id/reviewDropoff"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Dropoff location"
+                android:textColor="#222222"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginBottom="16dp" />
+
+    <!-- Delivery Details -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_box"
+            app:tint="#FF6B00"
+            android:layout_marginEnd="16dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/reviewVehicle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Delivery • Motorcycle / Bike"
+                android:textColor="#222222"
+                android:textSize="16sp" />
+            <TextView
+                android:id="@+id/reviewDistance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Distance: 0.0 km"
+                android:textColor="#FF6B00"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+            <TextView
+                android:id="@+id/reviewServices"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Additional services here"
+                android:textColor="#888888"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginBottom="16dp" />
+
+    <!-- Payment -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp">
+        <ImageView
+            android:id="@+id/reviewPaymentIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_cash"
+            app:tint="#FF6B00"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="16dp"/>
+        <TextView
+            android:id="@+id/reviewPaymentText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Paid by cash"
+            android:textColor="#222222"
+            android:textSize="16sp"
+            android:layout_toEndOf="@id/reviewPaymentIcon"
+            android:layout_centerVertical="true"/>
+        <TextView
+            android:id="@+id/reviewTotalFare"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="₱114.00"
+            android:textColor="#222222"
+            android:textSize="16sp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"/>
+    </RelativeLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPlaceOrderFinal"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:text="Place Order"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        app:cornerRadius="12dp"
+        android:backgroundTint="#FF6B00" />
+
+</LinearLayout>

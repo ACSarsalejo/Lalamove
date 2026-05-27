@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/optCouponLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="20dp"
+    android:paddingHorizontal="4dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?attr/selectableItemBackground">
+    <ImageView
+        android:id="@+id/optIconCoupon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_coupon"
+        app:tint="#CCCCCC" />
+    <TextView
+        android:id="@+id/textCoupon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add coupon"
+        android:textColor="#222222"
+        android:layout_toEndOf="@id/optIconCoupon"
+        android:layout_marginStart="16dp"
+        android:layout_centerVertical="true" />
+    <ImageView
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_search"
+        app:tint="#CCCCCC"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true" />
+</RelativeLayout>

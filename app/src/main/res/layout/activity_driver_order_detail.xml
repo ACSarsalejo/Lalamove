@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- Header -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        app:elevation="2dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp">
+            <ImageView
+                android:id="@+id/btnBackOrderReview"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_search"
+                app:tint="#444444" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Order Details"
+                android:textColor="#222222"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+            <View android:layout_width="24dp" android:layout_height="24dp" />
+        </LinearLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="100dp"
+        android:clipToPadding="false"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Booking ID -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Booking ID" android:textColor="#AAAAAA" android:textSize="12sp" />
+                    <TextView android:id="@+id/drvBookingId" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="..." android:textColor="#222222" android:textSize="13sp" android:textStyle="bold" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginBottom="16dp" />
+
+            <!-- Fare -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="20dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Fare"
+                    android:textColor="#888888"
+                    android:textSize="14sp" />
+                <View android:layout_width="0dp" android:layout_weight="1" android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/drvOrderFare"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="₱216.00"
+                    android:textColor="#FF6B00"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginBottom="20dp" />
+
+            <!-- Pickup -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+                <View
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="16dp"
+                    android:background="@drawable/pulse_circle" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PICKUP"
+                        android:textColor="#AAAAAA"
+                        android:textSize="11sp"
+                        android:letterSpacing="0.1" />
+                    <TextView
+                        android:id="@+id/drvOrderPickup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Pickup"
+                        android:textColor="#222222"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="2dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Dropoff -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="20dp">
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="16dp"
+                    android:src="@drawable/ic_search"
+                    app:tint="#FF6B00" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="DROP-OFF"
+                        android:textColor="#AAAAAA"
+                        android:textSize="11sp"
+                        android:letterSpacing="0.1" />
+                    <TextView
+                        android:id="@+id/drvOrderDropoff"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Dropoff"
+                        android:textColor="#222222"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="2dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginBottom="20dp" />
+
+            <!-- Info Rows -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Order Information" android:textColor="#888888" android:textSize="13sp" android:layout_marginBottom="12dp" />
+
+            <!-- Vehicle -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Vehicle Type" android:textColor="#AAAAAA" android:textSize="12sp" />
+                <TextView android:id="@+id/drvOrderVehicle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Motorcycle" android:textColor="#222222" android:textSize="15sp" android:textStyle="bold" android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <!-- Payment -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Payment Method" android:textColor="#AAAAAA" android:textSize="12sp" />
+                <TextView android:id="@+id/drvOrderPayment" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cash" android:textColor="#222222" android:textSize="15sp" android:textStyle="bold" android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <!-- Contact Number -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Contact Number" android:textColor="#AAAAAA" android:textSize="12sp" />
+                <TextView android:id="@+id/drvOrderContact" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+63" android:textColor="#222222" android:textSize="15sp" android:textStyle="bold" android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <!-- Notes -->
+            <LinearLayout android:id="@+id/drvNotesSection" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="16dp" android:visibility="gone">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Notes from Customer" android:textColor="#AAAAAA" android:textSize="12sp" />
+                <TextView android:id="@+id/drvOrderNotes" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#222222" android:textSize="15sp" android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginBottom="16dp" />
+
+            <!-- Item Details -->
+            <LinearLayout android:id="@+id/drvItemSection" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="16dp" android:visibility="gone">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Item Details" android:textColor="#AAAAAA" android:textSize="12sp" />
+                <TextView android:id="@+id/drvItemTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="" android:textColor="#222222" android:textSize="15sp" android:textStyle="bold" android:layout_marginTop="4dp" />
+                <TextView android:id="@+id/drvItemSubtitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="" android:textColor="#888888" android:textSize="13sp" android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Bottom Button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#FFFFFF"
+        android:elevation="16dp"
+        android:padding="20dp">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTakeOrder"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="Take Order"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            app:cornerRadius="12dp"
+            android:backgroundTint="#FF6B00" />
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
