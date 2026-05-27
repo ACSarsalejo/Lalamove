@@ -63,7 +63,7 @@ class CustomerWalletActivity : AppCompatActivity() {
             val filtered = JSONArray()
             for (i in 0 until (arr?.length() ?: 0)) {
                 val t = arr!!.getJSONObject(i)
-                if (t.optString("Tran_Type") in setOf("topup", "payment")) filtered.put(t)
+                if (t.optString("Tran_Type") in setOf("topup", "payment", "refund")) filtered.put(t)
             }
             renderTransactions(filtered)
         }

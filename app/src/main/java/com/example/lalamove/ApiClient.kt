@@ -373,17 +373,59 @@ object ApiClient {
             }
     }
 
-    /** Sends a Firebase password reset email. No XAMPP needed. */
-    fun forgotPassword(email: String, callback: (Boolean, String) -> Unit) {
-        auth.sendPasswordResetEmail(email)
-            .addOnSuccessListener { handler.post { callback(true, "Reset email sent! Check your inbox.") } }
-            .addOnFailureListener { e ->
-                val msg = when (e) {
-                    is FirebaseAuthInvalidUserException -> "No account found with this email."
-                    else -> e.message ?: "Failed to send reset email."
-                }
-                handler.post { callback(false, msg) }
+    /** Step 1 — verify email exists in MySQL before showing the password fields. */
+    fun checkForgotEmail(email: String, callback: (Boolean, String) -> Unit) {
+        Thread {
+            try {
+                val body = JSONObject().apply {
+                    put("action", "check_email")
+                    put("email", email)
+                }.toString()
+                val conn = URL("$PHP_BASE/forgot_password.php").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.doOutput = true
+                conn.connectTimeout = 10_000
+                conn.readTimeout    = 10_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val resp = conn.inputStream.bufferedReader().readText()
+                conn.disconnect()
+                val json = JSONObject(resp)
+                val ok   = json.optBoolean("success", false)
+                val msg  = if (ok) "" else (json.optString("error", "Account not found."))
+                handler.post { callback(ok, msg) }
+            } catch (e: Exception) {
+                handler.post { callback(false, e.message ?: "Network error.") }
             }
+        }.start()
+    }
+
+    /** Step 2 — reset the password directly (no email link). */
+    fun resetForgotPassword(email: String, newPassword: String, callback: (Boolean, String) -> Unit) {
+        Thread {
+            try {
+                val body = JSONObject().apply {
+                    put("action",       "reset_password")
+                    put("email",        email)
+                    put("new_password", newPassword)
+                }.toString()
+                val conn = URL("$PHP_BASE/forgot_password.php").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.doOutput = true
+                conn.connectTimeout = 10_000
+                conn.readTimeout    = 10_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val resp = conn.inputStream.bufferedReader().readText()
+                conn.disconnect()
+                val json = JSONObject(resp)
+                val ok   = json.optBoolean("success", false)
+                val msg  = if (ok) "" else (json.optString("error", "Reset failed. Try again."))
+                handler.post { callback(ok, msg) }
+            } catch (e: Exception) {
+                handler.post { callback(false, e.message ?: "Network error.") }
+            }
+        }.start()
     }
 
     fun changePassword(newPw: String, callback: (Boolean, String) -> Unit) {
@@ -477,105 +519,112 @@ object ApiClient {
     }
 
     fun walletTopUp(uid: String, role: String, amount: Double, method: String = "GCash", callback: (Boolean, Double, String) -> Unit) {
-        val col   = if (role == "driver") "driver" else "customer"
-        val field = if (role == "driver") "Drvr_WalletBalance" else "Cust_WalletBalance"
-        val ref   = firestore.collection(col).document(uid)
-        firestore.runTransaction { tx ->
-            val snap    = tx.get(ref)
-            val current = snap.getDouble(field) ?: 0.0
-            val newBal  = current + amount
-            tx.update(ref, field, newBal)
-            newBal
-        }.addOnSuccessListener { newBal ->
-            val ref2  = "TOPUP-${System.currentTimeMillis()}"
-            val txData = mapOf(
-                "type"        to "topup",
-                "amount"      to amount,
-                "description" to "Top-up via ${method.uppercase()}",
-                "reference"   to ref2,
-                "date"        to com.google.firebase.Timestamp.now()
-            )
-            firestore.collection(col).document(uid).collection("transactions").add(txData)
-            handler.post { callback(true, newBal, ref2) }
-        }.addOnFailureListener { e -> handler.post { callback(false, 0.0, e.message ?: "Top-up failed.") } }
+        Thread {
+            try {
+                val body = JSONObject().apply {
+                    put("user_id", uid.toLongOrNull() ?: uid)
+                    put("role",    role)
+                    put("amount",  amount)
+                    put("method",  method.lowercase())
+                }.toString()
+                val conn = URL("$PHP_BASE/wallet_topup.php").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"; conn.doOutput = true
+                conn.connectTimeout = 10_000; conn.readTimeout = 10_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val resp = conn.inputStream.bufferedReader().readText(); conn.disconnect()
+                val json = JSONObject(resp)
+                if (json.optBoolean("success", false))
+                    handler.post { callback(true,  json.optDouble("balance", 0.0), json.optString("ref", "")) }
+                else
+                    handler.post { callback(false, 0.0, json.optString("error", "Top-up failed.")) }
+            } catch (e: Exception) { handler.post { callback(false, 0.0, e.message ?: "Network error.") } }
+        }.start()
     }
 
     fun walletDeduct(uid: String, role: String, amount: Double, description: String, callback: (Boolean, Double, String) -> Unit) {
-        val col   = if (role == "driver") "driver" else "customer"
-        val field = if (role == "driver") "Drvr_WalletBalance" else "Cust_WalletBalance"
-        val ref   = firestore.collection(col).document(uid)
-        firestore.runTransaction { tx ->
-            val snap    = tx.get(ref)
-            val current = snap.getDouble(field) ?: 0.0
-            if (current < amount) throw Exception("Insufficient balance")
-            val newBal = current - amount
-            tx.update(ref, field, newBal)
-            newBal
-        }.addOnSuccessListener { newBal ->
-            val txData = mapOf(
-                "type"        to "payment",
-                "amount"      to amount,   // stored as positive; sign shown by type
-                "description" to description,
-                "date"        to com.google.firebase.Timestamp.now()
-            )
-            firestore.collection(col).document(uid).collection("transactions").add(txData)
-            handler.post { callback(true, newBal, "") }
-        }.addOnFailureListener { e -> handler.post { callback(false, 0.0, e.message ?: "Deduction failed.") } }
+        Thread {
+            try {
+                val body = JSONObject().apply {
+                    put("user_id",     uid.toLongOrNull() ?: uid)
+                    put("role",        role)
+                    put("amount",      amount)
+                    put("description", description)
+                }.toString()
+                val conn = URL("$PHP_BASE/wallet_deduct.php").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"; conn.doOutput = true
+                conn.connectTimeout = 10_000; conn.readTimeout = 10_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val resp = conn.inputStream.bufferedReader().readText(); conn.disconnect()
+                val json = JSONObject(resp)
+                if (json.optBoolean("success", false))
+                    handler.post { callback(true,  json.optDouble("balance", 0.0), "") }
+                else
+                    handler.post { callback(false, 0.0, json.optString("error", "Deduction failed.")) }
+            } catch (e: Exception) { handler.post { callback(false, 0.0, e.message ?: "Network error.") } }
+        }.start()
     }
 
     fun walletCashOut(uid: String, role: String, amount: Double, callback: (Boolean, Double, String) -> Unit) {
-        val col   = if (role == "driver") "driver" else "customer"
-        val field = if (role == "driver") "Drvr_WalletBalance" else "Cust_WalletBalance"
-        val ref   = firestore.collection(col).document(uid)
-        firestore.runTransaction { tx ->
-            val snap    = tx.get(ref)
-            val current = snap.getDouble(field) ?: 0.0
-            if (current < amount) throw Exception("Insufficient balance")
-            val newBal = current - amount
-            tx.update(ref, field, newBal)
-            newBal
-        }.addOnSuccessListener { newBal ->
-            val txData = mapOf("type" to "cashout", "amount" to -amount, "date" to com.google.firebase.Timestamp.now())
-            firestore.collection(col).document(uid).collection("transactions").add(txData)
-            val ref2 = "CASHOUT-${System.currentTimeMillis()}"
-            handler.post { callback(true, newBal, ref2) }
-        }.addOnFailureListener { e -> handler.post { callback(false, 0.0, e.message ?: "Cashout failed.") } }
+        Thread {
+            try {
+                val body = JSONObject().apply {
+                    put("user_id", uid.toLongOrNull() ?: uid)
+                    put("role",    role)
+                    put("amount",  amount)
+                }.toString()
+                val conn = URL("$PHP_BASE/wallet_cashout.php").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"; conn.doOutput = true
+                conn.connectTimeout = 10_000; conn.readTimeout = 10_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val resp = conn.inputStream.bufferedReader().readText(); conn.disconnect()
+                val json = JSONObject(resp)
+                if (json.optBoolean("success", false))
+                    handler.post { callback(true,  json.optDouble("balance", 0.0), json.optString("ref", "")) }
+                else
+                    handler.post { callback(false, 0.0, json.optString("error", "Cash out failed.")) }
+            } catch (e: Exception) { handler.post { callback(false, 0.0, e.message ?: "Network error.") } }
+        }.start()
     }
 
     fun walletTransactions(uid: String, role: String, callback: (JSONArray?) -> Unit) {
-        val col = if (role == "driver") "driver" else "customer"
-        firestore.collection(col).document(uid).collection("transactions")
-            .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
+        // Read from the shared top-level "transaction" collection so both
+        // Android and web see the same history.
+        firestore.collection("transaction")
+            .whereEqualTo("Tran_TargetType", role)
+            .whereEqualTo("Tran_TargetID",   uid)
+            .orderBy("Tran_Date", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .limit(50)
             .get()
             .addOnSuccessListener { snap ->
                 val arr = JSONArray()
                 snap.documents.forEach { d ->
-                    val raw  = d.data ?: return@forEach
-                    val type = raw["type"]?.toString() ?: "payment"
-                    // amount may be stored as negative for deductions — use absolute value
-                    val amount = Math.abs((raw["amount"] as? Number)?.toDouble() ?: 0.0)
-                    // Build a description if none stored
-                    val desc = raw["description"]?.toString()
-                        ?: raw["method"]?.let { "Top-up via ${it.toString().uppercase()}" }
+                    val raw    = d.data ?: return@forEach
+                    val type   = raw["Tran_Type"]?.toString() ?: "payment"
+                    val amount = Math.abs((raw["Tran_Amount"] as? Number)?.toDouble() ?: 0.0)
+                    val desc   = raw["Tran_Description"]?.toString()
                         ?: type.replaceFirstChar { it.uppercase() }
-                    // Firestore Timestamp → ISO-like string for display
+                    // Date is stored as ISO string by the PHP API
                     val dateStr = try {
-                        val ts = raw["date"] as? com.google.firebase.Timestamp
-                        if (ts != null) {
-                            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
-                            sdf.format(ts.toDate())
-                        } else raw["date"]?.toString() ?: ""
-                    } catch (_: Exception) { raw["date"]?.toString() ?: "" }
+                        val raw_date = raw["Tran_Date"]
+                        when (raw_date) {
+                            is com.google.firebase.Timestamp -> {
+                                val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+                                sdf.format(raw_date.toDate())
+                            }
+                            else -> raw_date?.toString() ?: ""
+                        }
+                    } catch (_: Exception) { raw["Tran_Date"]?.toString() ?: "" }
 
-                    val obj = JSONObject().apply {
+                    arr.put(JSONObject().apply {
                         put("Tran_Type",        type)
                         put("Tran_Amount",       amount)
                         put("Tran_Description",  desc)
                         put("Tran_Date",         dateStr)
-                        put("Tran_ReferenceNum", raw["reference"]?.toString() ?: "")
-                    }
-                    arr.put(obj)
+                        put("Tran_ReferenceNum", raw["Tran_ReferenceNum"]?.toString() ?: "")
+                    })
                 }
                 handler.post { callback(arr) }
             }
@@ -743,11 +792,83 @@ object ApiClient {
 
     // ── Order ────────────────────────────────────────────────────────────────
 
-    fun cancelOrder(orderId: String, callback: (Boolean, String) -> Unit) {
-        firestore.collection("booking").document(orderId)
-            .update("Book_Status", "cancelled")
-            .addOnSuccessListener { handler.post { callback(true, "") } }
-            .addOnFailureListener { e -> handler.post { callback(false, e.message ?: "Cancel failed.") } }
+    /**
+     * Advance delivery status from the driver side.
+     * Calls the PHP API which handles MySQL + Firestore atomically:
+     *   - 'en_route'  → marks driver heading to pickup
+     *   - 'picked_up' → marks goods collected
+     *   - 'delivered' → completes order, credits earnings, writes transaction records
+     *
+     * Returns: (success, earnings credited, new driver wallet balance, error message)
+     */
+    fun completeDelivery(
+        orderId: String,
+        driverId: String,
+        action: String,          // "en_route" | "picked_up" | "delivered"
+        callback: (Boolean, Double, Double, String) -> Unit
+    ) {
+        Thread {
+            try {
+                val body = JSONObject().apply {
+                    put("order_id",  orderId)
+                    put("driver_id", driverId.toLongOrNull() ?: driverId)
+                    put("action",    action)
+                }.toString()
+                val conn = URL("$PHP_BASE/complete_delivery.php").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"; conn.doOutput = true
+                conn.connectTimeout = 15_000; conn.readTimeout = 15_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val resp = conn.inputStream.bufferedReader().readText(); conn.disconnect()
+                val json = JSONObject(resp)
+                if (json.optBoolean("success", false)) {
+                    handler.post {
+                        callback(true,
+                            json.optDouble("earnings", 0.0),
+                            json.optDouble("balance",  0.0),
+                            "")
+                    }
+                } else {
+                    handler.post { callback(false, 0.0, 0.0, json.optString("error", "Failed.")) }
+                }
+            } catch (e: Exception) {
+                handler.post { callback(false, 0.0, 0.0, e.message ?: "Network error.") }
+            }
+        }.start()
+    }
+
+    fun cancelOrder(orderId: String, custId: String = "", callback: (Boolean, String) -> Unit) {
+        // Route through PHP so MySQL is updated and wallet payments are refunded.
+        Thread {
+            try {
+                val body = JSONObject().apply {
+                    put("cust_id",  custId.toLongOrNull() ?: custId)
+                    put("order_id", orderId)
+                }.toString()
+                val conn = URL("$PHP_BASE/cancel_order.php").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"; conn.doOutput = true
+                conn.connectTimeout = 10_000; conn.readTimeout = 10_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val resp = conn.inputStream.bufferedReader().readText(); conn.disconnect()
+                val json = JSONObject(resp)
+                if (json.optBoolean("success", false)) {
+                    handler.post { callback(true, "") }
+                } else {
+                    // PHP failed — fall back to direct Firestore write
+                    firestore.collection("booking").document(orderId)
+                        .update("Book_Status", "cancelled")
+                        .addOnSuccessListener { handler.post { callback(true, "") } }
+                        .addOnFailureListener { e -> handler.post { callback(false, e.message ?: "Cancel failed.") } }
+                }
+            } catch (e: Exception) {
+                // Network error — fall back to direct Firestore write
+                firestore.collection("booking").document(orderId)
+                    .update("Book_Status", "cancelled")
+                    .addOnSuccessListener { handler.post { callback(true, "") } }
+                    .addOnFailureListener { ex -> handler.post { callback(false, ex.message ?: "Cancel failed.") } }
+            }
+        }.start()
     }
 
     // ── Proof of Delivery ────────────────────────────────────────────────────

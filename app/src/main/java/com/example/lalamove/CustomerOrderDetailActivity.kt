@@ -452,14 +452,20 @@ class CustomerOrderDetailActivity : AppCompatActivity() {
                     .setTitle("Final Confirmation")
                     .setMessage("This action cannot be undone. Cancel order permanently?")
                     .setPositiveButton("Confirm Cancellation") { _, _ ->
-                        // Update Firestore immediately for live UI
-                        firestore.collection("booking").document(orderId)
-                            .update("Book_Status", "cancelled")
-                            .addOnSuccessListener {
+                        val custId = SessionManager.getUserId(this)
+                        // Route through PHP for MySQL sync + wallet refund on cancellation
+                        ApiClient.cancelOrder(orderId, custId) { ok, _ ->
+                            if (ok) {
                                 Toast.makeText(this, "Order Cancelled", Toast.LENGTH_SHORT).show()
+                            } else {
+                                // PHP failed — update Firestore directly as fallback
+                                firestore.collection("booking").document(orderId)
+                                    .update("Book_Status", "cancelled")
+                                    .addOnSuccessListener {
+                                        Toast.makeText(this, "Order Cancelled", Toast.LENGTH_SHORT).show()
+                                    }
                             }
-                        // Update Firestore record
-                        ApiClient.cancelOrder(orderId) { _, _ -> }
+                        }
                     }
                     .setNegativeButton("No", null)
                     .show()

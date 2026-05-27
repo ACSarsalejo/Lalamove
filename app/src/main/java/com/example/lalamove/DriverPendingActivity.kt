@@ -44,14 +44,23 @@ class DriverPendingActivity : AppCompatActivity() {
                             return@addOnSuccessListener
                         }
 
-                        // Show step-by-step status from Firestore fields (if set by admin)
-                        val identityStep   = doc.getString("Drvr_IdentityStatus")   ?: "pending"
-                        val vehicleStep    = doc.getString("Drvr_VehicleStatus")    ?: "pending"
+                        // Show step-by-step status from Firestore fields (set by admin)
+                        // Normalise: admin writes 'approved' for identity/vehicle steps.
+                        // Treat legacy 'verified' as 'approved' for backward compat.
+                        fun normalise(raw: String?): String = when (raw) {
+                            "approved", "verified" -> "approved"
+                            "rejected"             -> "rejected"
+                            "pending"              -> "pending"
+                            else                   -> "pending"
+                        }
 
-                        setStepStatus(stepIdentity,   identityStep)
-                        setStepStatus(stepVehicle,    vehicleStep)
+                        val identityStep = normalise(doc.getString("Drvr_IdentityStatus"))
+                        val vehicleStep  = normalise(doc.getString("Drvr_VehicleStatus"))
 
-                        // Activation is only approved when all others are approved
+                        setStepStatus(stepIdentity,  identityStep)
+                        setStepStatus(stepVehicle,   vehicleStep)
+
+                        // Activation shows pending only when both steps are approved
                         val allApproved = identityStep == "approved" && vehicleStep == "approved"
                         setStepStatus(stepActivation, if (allApproved) "pending" else "waiting")
                     }

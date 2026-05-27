@@ -188,9 +188,9 @@ class DriverActiveDeliveryActivity : AppCompatActivity() {
             if (!isPickedUp) {
                 btnMainAction.isEnabled = false
                 btnMainAction.text = "Updating..."
-                FirebaseFirestore.getInstance().collection("booking").document(orderId)
-                    .update("Book_Status", "picked_up")
-                    .addOnSuccessListener {
+                val driverId = SessionManager.getUserId(this)
+                ApiClient.completeDelivery(orderId, driverId, "picked_up") { ok, _, _, err ->
+                    if (ok) {
                         isPickedUp = true
                         btnMainAction.isEnabled = true
                         btnMainAction.text = "Confirm Delivery"
@@ -203,12 +203,12 @@ class DriverActiveDeliveryActivity : AppCompatActivity() {
                         if (pLoc != null && dLoc != null) {
                             startSimulationLeg(pLoc, dLoc)
                         }
-                    }
-                    .addOnFailureListener { e ->
+                    } else {
                         btnMainAction.isEnabled = true
                         btnMainAction.text = "Confirm Pick Up"
-                        Toast.makeText(this, "Failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, err.ifEmpty { "Failed to update status." }, Toast.LENGTH_SHORT).show()
                     }
+                }
             } else {
                 AlertDialog.Builder(this)
                     .setTitle("Confirm Delivery")
@@ -400,20 +400,24 @@ class DriverActiveDeliveryActivity : AppCompatActivity() {
         btnMainAction.isEnabled = false
         btnMainAction.text = "Completing..."
 
-        FirebaseFirestore.getInstance().collection("booking").document(orderId)
-            .update("Book_Status", "delivered")
-            .addOnSuccessListener {
-                Toast.makeText(this, "🎉 Delivery completed!", Toast.LENGTH_LONG).show()
-                val intent = Intent(this, DriverDashboardActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-                startActivity(intent)
+        val driverId = SessionManager.getUserId(this)
+        ApiClient.completeDelivery(orderId, driverId, "delivered") { ok, earnings, newBalance, err ->
+            if (ok) {
+                val msg = if (earnings > 0)
+                    "🎉 Delivery completed! +₱${String.format("%,.2f", earnings)} earned"
+                else
+                    "🎉 Delivery completed!"
+                Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+                startActivity(Intent(this, DriverDashboardActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                })
                 finish()
-            }
-            .addOnFailureListener { e ->
+            } else {
                 btnMainAction.isEnabled = true
                 btnMainAction.text = "Confirm Delivery"
-                Toast.makeText(this, "Failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, err.ifEmpty { "Failed to complete delivery." }, Toast.LENGTH_SHORT).show()
             }
+        }
     }
 
     override fun onResume() {
