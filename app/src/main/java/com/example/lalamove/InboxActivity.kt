@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
 
 class InboxActivity : AppCompatActivity() {
 
@@ -21,7 +20,6 @@ class InboxActivity : AppCompatActivity() {
     private lateinit var tabDivider: View
 
     private lateinit var firestore: FirebaseFirestore
-    private var ordersListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,18 +44,26 @@ class InboxActivity : AppCompatActivity() {
 
     private fun loadNotifications() {
         val userId = SessionManager.getUserId(this)
-
-        ordersListener = firestore.collection("booking")
+        if (userId.isEmpty()) {
+            notificationsContent.addView(makeEmptyLabel("No order notifications yet"))
+            return
+        }
+        // One-time fetch instead of a persistent snapshot listener.
+        // A snapshot listener on the full bookings collection re-fires on every
+        // order change anywhere in the app, costing one read per change even when
+        // InboxActivity is in the background. A single .get() costs one read total.
+        firestore.collection("booking")
             .whereEqualTo("Book_CustID", userId)
-            .addSnapshotListener { snap, error ->
-                if (error != null) return@addSnapshotListener
-                val sorted = (snap?.documents ?: emptyList())
-                    .sortedByDescending { it.getDate("Book_CreatedAt") }
+            .orderBy("Book_CreatedAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(20)
+            .get()
+            .addOnSuccessListener { snap ->
                 notificationsContent.removeAllViews()
-                if (sorted.isEmpty()) {
+                val docs = snap.documents
+                if (docs.isEmpty()) {
                     notificationsContent.addView(makeEmptyLabel("No order notifications yet"))
                 } else {
-                    sorted.forEach { doc ->
+                    docs.forEach { doc ->
                         val data    = doc.data ?: return@forEach
                         val status  = data["Book_Status"]?.toString() ?: "pending"
                         val pickup  = data["Book_Pickuploc"]?.toString() ?: "—"
@@ -65,6 +71,9 @@ class InboxActivity : AppCompatActivity() {
                         notificationsContent.addView(makeNotifCard(status, pickup, dropoff))
                     }
                 }
+            }
+            .addOnFailureListener {
+                notificationsContent.addView(makeEmptyLabel("Could not load notifications"))
             }
     }
 
@@ -261,8 +270,10 @@ class InboxActivity : AppCompatActivity() {
         tabDivider.layoutParams = params
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        ordersListener?.remove()
+    override fun onResume() {
+        super.onResume()
+        // Refresh notifications each time the user returns to Inbox.
+        notificationsContent.removeAllViews()
+        loadNotifications()
     }
 }

@@ -42,90 +42,50 @@ object ApiClient {
     // ── Auth ────────────────────────────────────────────────────────────────
 
     fun login(identifier: String, password: String, callback: (LoginResult?, String) -> Unit) {
-        // Firebase Auth only accepts email. If identifier looks like a phone number,
-        // look up the matching email from Firestore first, then sign in.
-        val looksLikePhone = identifier.all { it.isDigit() || it == '+' || it == '-' || it == ' ' }
-                             && identifier.any { it.isDigit() }
-                             && !identifier.contains("@")
-        if (looksLikePhone) {
-            // Search customer collection first, then driver
-            val phone = identifier.trim()
-            firestore.collection("customer").whereEqualTo("Cust_Phone", phone).limit(1).get()
-                .addOnSuccessListener { custSnap ->
-                    val email = custSnap.documents.firstOrNull()?.getString("Cust_Email")
-                    if (email != null) {
-                        login(email, password, callback)
-                    } else {
-                        firestore.collection("driver").whereEqualTo("Drvr_PhoneNum", phone).limit(1).get()
-                            .addOnSuccessListener { drvrSnap ->
-                                val drvrEmail = drvrSnap.documents.firstOrNull()?.getString("Drvr_Email")
-                                if (drvrEmail != null) {
-                                    login(drvrEmail, password, callback)
-                                } else {
-                                    handler.post { callback(null, "No account found with this phone number.") }
-                                }
-                            }
-                            .addOnFailureListener { e -> handler.post { callback(null, e.message ?: "Login failed.") } }
-                    }
-                }
-                .addOnFailureListener { e -> handler.post { callback(null, e.message ?: "Login failed.") } }
-            return
-        }
-
-        auth.signInWithEmailAndPassword(identifier, password)
-            .addOnSuccessListener { authResult ->
-                val firebaseUid = authResult.user!!.uid
-                // Step 1: look up the custom ID from the uid_map collection
-                firestore.collection("uid_map").document(firebaseUid).get()
-                    .addOnSuccessListener { mapDoc ->
-                        if (mapDoc.exists()) {
-                            val docId = mapDoc.getString("customId") ?: ""
-                            val role  = mapDoc.getString("role") ?: "customer"
-                            val col   = if (role == "driver") "driver" else "customer"
-                            // Step 2: fetch the actual profile using the custom ID as doc ID
-                            firestore.collection(col).document(docId).get()
-                                .addOnSuccessListener { profileDoc ->
-                                    if (!profileDoc.exists()) {
-                                        handler.post { callback(null, "Profile not found. Please contact support.") }
-                                        return@addOnSuccessListener
-                                    }
-                                    val result = if (role == "driver") {
-                                        LoginResult(
-                                            role       = "driver",
-                                            userId     = docId,
-                                            name       = "${profileDoc.getString("Drvr_FirstName") ?: ""} ${profileDoc.getString("Drvr_LastName") ?: ""}".trim(),
-                                            email      = profileDoc.getString("Drvr_Email") ?: identifier,
-                                            phone      = profileDoc.getString("Drvr_PhoneNum") ?: "",
-                                            isVerified = profileDoc.getBoolean("Drvr_IsVerified") ?: false
-                                        )
-                                    } else {
-                                        LoginResult(
-                                            role       = "customer",
-                                            userId     = docId,
-                                            name       = "${profileDoc.getString("Cust_FirstName") ?: ""} ${profileDoc.getString("Cust_LastName") ?: ""}".trim(),
-                                            email      = profileDoc.getString("Cust_Email") ?: identifier,
-                                            phone      = profileDoc.getString("Cust_Phone") ?: "",
-                                            isVerified = false
-                                        )
-                                    }
-                                    handler.post { callback(result, "") }
-                                }
-                                .addOnFailureListener { e -> handler.post { callback(null, e.message ?: "Login failed") } }
-                        } else {
-                            // Fallback: account pre-dates the uid_map (doc ID = Firebase UID)
-                            loginLegacyByUid(firebaseUid, identifier, callback)
+        Thread {
+            try {
+                val body = JSONObject().apply {
+                    put("identifier", identifier)
+                    put("password",   password)
+                }.toString()
+                val conn = URL("$PHP_BASE/login.php").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.doOutput = true
+                conn.connectTimeout = 10_000
+                conn.readTimeout    = 10_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val resp = conn.inputStream.bufferedReader().readText()
+                conn.disconnect()
+                val json = JSONObject(resp)
+                
+                if (json.optBoolean("success", false)) {
+                    val role = json.optString("role")
+                    val userId = json.optString("user_id")
+                    val name = json.optString("name")
+                    val email = json.optString("email")
+                    val phone = json.optString("phone")
+                    val isVerified = json.optBoolean("is_verified", false)
+                    
+                    // Sign in anonymously to Firebase Auth as a background task
+                    // so auth.currentUser is populated and has access to Firestore.
+                    if (auth.currentUser == null) {
+                        auth.signInAnonymously().addOnCompleteListener { task ->
+                            val result = LoginResult(role, userId, name, email, phone, isVerified)
+                            handler.post { callback(result, "") }
                         }
+                    } else {
+                        val result = LoginResult(role, userId, name, email, phone, isVerified)
+                        handler.post { callback(result, "") }
                     }
-                    .addOnFailureListener { e -> handler.post { callback(null, e.message ?: "Login failed") } }
-            }
-            .addOnFailureListener { e ->
-                val msg = when (e) {
-                    is FirebaseAuthInvalidUserException         -> "No account found with this email."
-                    is FirebaseAuthInvalidCredentialsException -> "Incorrect password."
-                    else                                       -> e.message ?: "Login failed."
+                } else {
+                    val err = json.optString("error", "Incorrect email/phone or password.")
+                    handler.post { callback(null, err) }
                 }
-                handler.post { callback(null, msg) }
+            } catch (e: Exception) {
+                handler.post { callback(null, e.message ?: "Network error.") }
             }
+        }.start()
     }
 
     /**
@@ -296,7 +256,21 @@ object ApiClient {
                     batch.set(firestore.collection("uid_map").document(uid),
                         mapOf("customId" to docId, "role" to "customer"))
                     batch.commit()
-                        .addOnSuccessListener { handler.post { callback(true, docId, "") } }
+                        .addOnSuccessListener {
+                            Thread {
+                                try {
+                                    val conn = URL("$PHP_BASE/sync_doc.php?id=user_cust_$docId").openConnection() as HttpURLConnection
+                                    conn.requestMethod = "GET"
+                                    conn.connectTimeout = 5000
+                                    conn.readTimeout = 5000
+                                    conn.inputStream.bufferedReader().use { it.readText() }
+                                    conn.disconnect()
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }.start()
+                            handler.post { callback(true, docId, "") }
+                        }
                         .addOnFailureListener { e -> handler.post { callback(false, "", e.message ?: "Profile write failed") } }
                 }
             }
@@ -359,7 +333,21 @@ object ApiClient {
                     batch.set(firestore.collection("uid_map").document(uid),
                         mapOf("customId" to docId, "role" to "driver"))
                     batch.commit()
-                        .addOnSuccessListener { handler.post { callback(true, docId, "") } }
+                        .addOnSuccessListener {
+                            Thread {
+                                try {
+                                    val conn = URL("$PHP_BASE/sync_doc.php?id=user_drvr_$docId").openConnection() as HttpURLConnection
+                                    conn.requestMethod = "GET"
+                                    conn.connectTimeout = 5000
+                                    conn.readTimeout = 5000
+                                    conn.inputStream.bufferedReader().use { it.readText() }
+                                    conn.disconnect()
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }.start()
+                            handler.post { callback(true, docId, "") }
+                        }
                         .addOnFailureListener { e -> handler.post { callback(false, "", e.message ?: "Profile write failed") } }
                 }
             }
@@ -428,33 +416,81 @@ object ApiClient {
         }.start()
     }
 
-    fun changePassword(newPw: String, callback: (Boolean, String) -> Unit) {
-        val user = auth.currentUser
-        if (user == null) { callback(false, "Not logged in."); return }
-        user.updatePassword(newPw)
-            .addOnSuccessListener { handler.post { callback(true, "") } }
-            .addOnFailureListener { e -> handler.post { callback(false, e.message ?: "Password change failed.") } }
+    fun changePassword(acctId: String, currentPw: String, newPw: String, callback: (Boolean, String) -> Unit) {
+        Thread {
+            try {
+                val body = JSONObject().apply {
+                    put("acct_id", acctId.toIntOrNull() ?: 0)
+                    put("current_password", currentPw)
+                    put("new_password", newPw)
+                }.toString()
+                val conn = URL("$PHP_BASE/change_password.php").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.doOutput = true
+                conn.connectTimeout = 10_000
+                conn.readTimeout    = 10_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val resp = conn.inputStream.bufferedReader().readText()
+                conn.disconnect()
+                val json = JSONObject(resp)
+                val ok = json.optBoolean("success", false)
+                val err = if (ok) "" else json.optString("error", "Password change failed.")
+                handler.post { callback(ok, err) }
+            } catch (e: Exception) {
+                handler.post { callback(false, e.message ?: "Network error.") }
+            }
+        }.start()
     }
 
     // ── Profile ─────────────────────────────────────────────────────────────
 
     fun getProfile(uid: String, role: String, callback: (JSONObject?) -> Unit) {
-        val col = if (role == "driver") "driver" else "customer"
-        firestore.collection(col).document(uid).get()
-            .addOnSuccessListener { doc ->
-                if (doc.exists()) handler.post { callback(JSONObject(doc.data ?: emptyMap<String, Any>())) }
+        // MySQL-first: avoids a Firestore document read on every Settings open.
+        Thread {
+            try {
+                val url = "$PHP_BASE/get_profile.php?acct_id=${uid.toLongOrNull() ?: uid}"
+                val conn = URL(url).openConnection() as HttpURLConnection
+                conn.connectTimeout = 8_000; conn.readTimeout = 8_000
+                val json = JSONObject(conn.inputStream.bufferedReader().readText())
+                conn.disconnect()
+                if (json.optBoolean("success", false)) handler.post { callback(json) }
                 else handler.post { callback(null) }
-            }
-            .addOnFailureListener { handler.post { callback(null) } }
+            } catch (e: Exception) { handler.post { callback(null) } }
+        }.start()
     }
 
     fun updateProfile(uid: String, role: String, firstName: String, lastName: String, phone: String, email: String, callback: (Boolean, String) -> Unit) {
-        val col = if (role == "driver") "driver" else "customer"
-        val updates = if (role == "driver") mapOf("Drvr_FirstName" to firstName, "Drvr_LastName" to lastName, "Drvr_PhoneNum" to phone, "Drvr_Email" to email)
-                      else mapOf("Cust_FirstName" to firstName, "Cust_LastName" to lastName, "Cust_Phone" to phone, "Cust_Email" to email)
-        firestore.collection(col).document(uid).update(updates)
-            .addOnSuccessListener { handler.post { callback(true, "") } }
-            .addOnFailureListener { e -> handler.post { callback(false, e.message ?: "Update failed.") } }
+        Thread {
+            try {
+                val body = JSONObject().apply {
+                    put("acct_id",    uid.toLongOrNull() ?: uid)
+                    put("first_name", firstName)
+                    put("last_name",  lastName)
+                    put("phone",      phone)
+                    put("email",      email)
+                }.toString()
+                val conn = URL("$PHP_BASE/update_profile.php").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"; conn.doOutput = true
+                conn.connectTimeout = 10_000; conn.readTimeout = 10_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val json = JSONObject(conn.inputStream.bufferedReader().readText())
+                conn.disconnect()
+                if (json.optBoolean("success", false)) {
+                    // Also sync to Firestore (write-only — no read cost)
+                    val col = if (role == "driver") "driver" else "customer"
+                    val updates = if (role == "driver")
+                        mapOf("Drvr_FirstName" to firstName, "Drvr_LastName" to lastName, "Drvr_PhoneNum" to phone, "Drvr_Email" to email)
+                    else
+                        mapOf("Cust_FirstName" to firstName, "Cust_LastName" to lastName, "Cust_Phone" to phone, "Cust_Email" to email)
+                    firestore.collection(col).document(uid).update(updates)
+                    handler.post { callback(true, "") }
+                } else {
+                    handler.post { callback(false, json.optString("error", "Update failed.")) }
+                }
+            } catch (e: Exception) { handler.post { callback(false, e.message ?: "Network error.") } }
+        }.start()
     }
 
     fun updatePhoto(uid: String, role: String, photoBytes: ByteArray, mimeType: String, callback: (Boolean, String) -> Unit) {
@@ -474,48 +510,114 @@ object ApiClient {
     // ── Addresses ────────────────────────────────────────────────────────────
 
     fun getAddresses(uid: String, callback: (JSONArray?) -> Unit) {
-        firestore.collection("customer").document(uid).collection("addresses")
-            .get()
-            .addOnSuccessListener { snap ->
-                val arr = JSONArray()
-                snap.documents.forEach { d ->
-                    arr.put(JSONObject(d.data ?: emptyMap<String, Any>()).apply { put("addr_id", d.id) })
+        // MySQL-first: avoids a Firestore sub-collection read (counts as N doc reads).
+        Thread {
+            try {
+                val url = "$PHP_BASE/addresses.php?acct_id=${uid.toLongOrNull() ?: uid}"
+                val conn = URL(url).openConnection() as HttpURLConnection
+                conn.connectTimeout = 8_000; conn.readTimeout = 8_000
+                val json = JSONObject(conn.inputStream.bufferedReader().readText())
+                conn.disconnect()
+                if (!json.optBoolean("success", false)) { handler.post { callback(null) }; return@Thread }
+                val rows = json.getJSONArray("addresses")
+                val arr  = JSONArray()
+                for (i in 0 until rows.length()) {
+                    val row = rows.getJSONObject(i)
+                    arr.put(JSONObject().apply {
+                        put("addr_id", row.optString("Addr_ID"))
+                        put("label",   row.optString("Addr_Label"))
+                        put("address", row.optString("Addr_Address"))
+                        put("type",    row.optString("Addr_Type"))
+                    })
                 }
                 handler.post { callback(arr) }
-            }
-            .addOnFailureListener { handler.post { callback(null) } }
+            } catch (e: Exception) { handler.post { callback(null) } }
+        }.start()
     }
 
     fun addAddress(uid: String, label: String, address: String, type: String, callback: (Boolean, String) -> Unit) {
-        val data = mapOf("label" to label, "address" to address, "type" to type)
-        firestore.collection("customer").document(uid).collection("addresses")
-            .add(data)
-            .addOnSuccessListener { ref -> handler.post { callback(true, ref.id) } }
-            .addOnFailureListener { handler.post { callback(false, "") } }
+        Thread {
+            try {
+                val body = JSONObject().apply {
+                    put("acct_id", uid.toLongOrNull() ?: uid)
+                    put("action",  "add")
+                    put("label",   label)
+                    put("address", address)
+                    put("type",    type)
+                }.toString()
+                val conn = URL("$PHP_BASE/addresses.php").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"; conn.doOutput = true
+                conn.connectTimeout = 10_000; conn.readTimeout = 10_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val json = JSONObject(conn.inputStream.bufferedReader().readText())
+                conn.disconnect()
+                if (json.optBoolean("success", false))
+                    handler.post { callback(true, json.optInt("addr_id").toString()) }
+                else
+                    handler.post { callback(false, "") }
+            } catch (e: Exception) { handler.post { callback(false, "") } }
+        }.start()
     }
 
     fun updateAddress(uid: String, addrId: String, label: String, address: String, type: String, callback: (Boolean) -> Unit) {
-        firestore.collection("customer").document(uid).collection("addresses").document(addrId)
-            .update(mapOf("label" to label, "address" to address, "type" to type))
-            .addOnSuccessListener { handler.post { callback(true) } }
-            .addOnFailureListener { handler.post { callback(false) } }
+        Thread {
+            try {
+                val body = JSONObject().apply {
+                    put("acct_id", uid.toLongOrNull() ?: uid)
+                    put("action",  "update")
+                    put("addr_id", addrId.toIntOrNull() ?: 0)
+                    put("label",   label)
+                    put("address", address)
+                    put("type",    type)
+                }.toString()
+                val conn = URL("$PHP_BASE/addresses.php").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"; conn.doOutput = true
+                conn.connectTimeout = 10_000; conn.readTimeout = 10_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val json = JSONObject(conn.inputStream.bufferedReader().readText())
+                conn.disconnect()
+                handler.post { callback(json.optBoolean("success", false)) }
+            } catch (e: Exception) { handler.post { callback(false) } }
+        }.start()
     }
 
     fun deleteAddress(uid: String, addrId: String, callback: (Boolean) -> Unit) {
-        firestore.collection("customer").document(uid).collection("addresses").document(addrId)
-            .delete()
-            .addOnSuccessListener { handler.post { callback(true) } }
-            .addOnFailureListener { handler.post { callback(false) } }
+        Thread {
+            try {
+                val body = JSONObject().apply {
+                    put("acct_id", uid.toLongOrNull() ?: uid)
+                    put("action",  "delete")
+                    put("addr_id", addrId.toIntOrNull() ?: 0)
+                }.toString()
+                val conn = URL("$PHP_BASE/addresses.php").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"; conn.doOutput = true
+                conn.connectTimeout = 10_000; conn.readTimeout = 10_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val json = JSONObject(conn.inputStream.bufferedReader().readText())
+                conn.disconnect()
+                handler.post { callback(json.optBoolean("success", false)) }
+            } catch (e: Exception) { handler.post { callback(false) } }
+        }.start()
     }
 
     // ── Wallet ───────────────────────────────────────────────────────────────
 
     fun walletBalance(uid: String, role: String, callback: (Double?) -> Unit) {
-        val col   = if (role == "driver") "driver" else "customer"
-        val field = if (role == "driver") "Drvr_WalletBalance" else "Cust_WalletBalance"
-        firestore.collection(col).document(uid).get()
-            .addOnSuccessListener { doc -> handler.post { callback(doc.getDouble(field)) } }
-            .addOnFailureListener { handler.post { callback(null) } }
+        // MySQL-first: reads balance from MySQL instead of a Firestore document read.
+        Thread {
+            try {
+                val url = "$PHP_BASE/wallet_balance.php?user_id=${uid.toLongOrNull() ?: uid}&role=$role"
+                val conn = URL(url).openConnection() as HttpURLConnection
+                conn.connectTimeout = 8_000; conn.readTimeout = 8_000
+                val json = JSONObject(conn.inputStream.bufferedReader().readText())
+                conn.disconnect()
+                val balance = if (json.optBoolean("success", false)) json.optDouble("balance") else null
+                handler.post { callback(balance) }
+            } catch (e: Exception) { handler.post { callback(null) } }
+        }.start()
     }
 
     fun walletTopUp(uid: String, role: String, amount: Double, method: String = "GCash", callback: (Boolean, Double, String) -> Unit) {
@@ -590,45 +692,32 @@ object ApiClient {
     }
 
     fun walletTransactions(uid: String, role: String, callback: (JSONArray?) -> Unit) {
-        // Read from the shared top-level "transaction" collection so both
-        // Android and web see the same history.
-        firestore.collection("transaction")
-            .whereEqualTo("Tran_TargetType", role)
-            .whereEqualTo("Tran_TargetID",   uid)
-            .orderBy("Tran_Date", com.google.firebase.firestore.Query.Direction.DESCENDING)
-            .limit(50)
-            .get()
-            .addOnSuccessListener { snap ->
-                val arr = JSONArray()
-                snap.documents.forEach { d ->
-                    val raw    = d.data ?: return@forEach
-                    val type   = raw["Tran_Type"]?.toString() ?: "payment"
-                    val amount = Math.abs((raw["Tran_Amount"] as? Number)?.toDouble() ?: 0.0)
-                    val desc   = raw["Tran_Description"]?.toString()
-                        ?: type.replaceFirstChar { it.uppercase() }
-                    // Date is stored as ISO string by the PHP API
-                    val dateStr = try {
-                        val raw_date = raw["Tran_Date"]
-                        when (raw_date) {
-                            is com.google.firebase.Timestamp -> {
-                                val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
-                                sdf.format(raw_date.toDate())
-                            }
-                            else -> raw_date?.toString() ?: ""
-                        }
-                    } catch (_: Exception) { raw["Tran_Date"]?.toString() ?: "" }
-
+        // MySQL-first: replaces a Firestore index query (counts as N reads) with
+        // a single MySQL SELECT. Both stores always have the same transactions
+        // because all wallet APIs write to MySQL first, then sync to Firestore.
+        Thread {
+            try {
+                val url = "$PHP_BASE/wallet_transactions.php?user_id=${uid.toLongOrNull() ?: uid}&role=$role"
+                val conn = URL(url).openConnection() as HttpURLConnection
+                conn.connectTimeout = 8_000; conn.readTimeout = 8_000
+                val json = JSONObject(conn.inputStream.bufferedReader().readText())
+                conn.disconnect()
+                if (!json.optBoolean("success", false)) { handler.post { callback(null) }; return@Thread }
+                val rows = json.getJSONArray("transactions")
+                val arr  = JSONArray()
+                for (i in 0 until rows.length()) {
+                    val row = rows.getJSONObject(i)
                     arr.put(JSONObject().apply {
-                        put("Tran_Type",        type)
-                        put("Tran_Amount",       amount)
-                        put("Tran_Description",  desc)
-                        put("Tran_Date",         dateStr)
-                        put("Tran_ReferenceNum", raw["Tran_ReferenceNum"]?.toString() ?: "")
+                        put("Tran_Type",         row.optString("Tran_Type"))
+                        put("Tran_Amount",        Math.abs(row.optDouble("Tran_Amount", 0.0)))
+                        put("Tran_Description",   row.optString("Tran_Description"))
+                        put("Tran_Date",          row.optString("Tran_Date"))
+                        put("Tran_ReferenceNum",  row.optString("Tran_ReferenceNum"))
                     })
                 }
                 handler.post { callback(arr) }
-            }
-            .addOnFailureListener { handler.post { callback(null) } }
+            } catch (e: Exception) { handler.post { callback(null) } }
+        }.start()
     }
 
     // ── Reports / Disputes ───────────────────────────────────────────────────
@@ -755,39 +844,53 @@ object ApiClient {
     // ── Coupons ──────────────────────────────────────────────────────────────
 
     fun getActiveCoupons(callback: (JSONArray?) -> Unit) {
-        firestore.collection("coupons")
-            .whereEqualTo("Cpn_IsActive", true)
-            .get()
-            .addOnSuccessListener { snap ->
-                val arr = JSONArray()
-                snap.documents.forEach { d -> arr.put(JSONObject(d.data ?: emptyMap<String, Any>())) }
-                handler.post { callback(arr) }
-            }
-            .addOnFailureListener { handler.post { callback(null) } }
+        // MySQL-first: replaces a Firestore collection query with a MySQL SELECT.
+        Thread {
+            try {
+                val conn = URL("$PHP_BASE/active_coupons.php").openConnection() as HttpURLConnection
+                conn.connectTimeout = 8_000; conn.readTimeout = 8_000
+                val json = JSONObject(conn.inputStream.bufferedReader().readText())
+                conn.disconnect()
+                if (!json.optBoolean("success", false)) { handler.post { callback(null) }; return@Thread }
+                handler.post { callback(json.getJSONArray("coupons")) }
+            } catch (e: Exception) { handler.post { callback(null) } }
+        }.start()
     }
 
     fun couponList(uid: String, callback: (JSONArray?) -> Unit) {
-        firestore.collection("customer").document(uid).collection("coupons")
-            .get()
-            .addOnSuccessListener { snap ->
-                val arr = JSONArray()
-                snap.documents.forEach { d -> arr.put(JSONObject(d.data ?: emptyMap<String, Any>())) }
-                handler.post { callback(arr) }
-            }
-            .addOnFailureListener { handler.post { callback(null) } }
+        // MySQL-first: replaces a Firestore sub-collection read.
+        Thread {
+            try {
+                val url = "$PHP_BASE/coupon_list.php?user_id=${uid.toLongOrNull() ?: uid}"
+                val conn = URL(url).openConnection() as HttpURLConnection
+                conn.connectTimeout = 8_000; conn.readTimeout = 8_000
+                val json = JSONObject(conn.inputStream.bufferedReader().readText())
+                conn.disconnect()
+                if (!json.optBoolean("success", false)) { handler.post { callback(null) }; return@Thread }
+                handler.post { callback(json.getJSONArray("coupons")) }
+            } catch (e: Exception) { handler.post { callback(null) } }
+        }.start()
     }
 
     fun couponValidate(code: String, uid: String, fare: Double, callback: (JSONObject?) -> Unit) {
-        firestore.collection("coupons")
-            .whereEqualTo("Cpn_Code", code)
-            .whereEqualTo("Cpn_IsActive", true)
-            .get()
-            .addOnSuccessListener { snap ->
-                if (snap.isEmpty) { handler.post { callback(null) }; return@addOnSuccessListener }
-                val doc = snap.documents[0]
-                handler.post { callback(JSONObject(doc.data ?: emptyMap<String, Any>())) }
-            }
-            .addOnFailureListener { handler.post { callback(null) } }
+        // MySQL-first: replaces a Firestore query with a MySQL lookup.
+        Thread {
+            try {
+                val body = JSONObject().apply {
+                    put("code",    code.uppercase())
+                    put("user_id", uid.toLongOrNull() ?: uid)
+                    put("fare",    fare)
+                }.toString()
+                val conn = URL("$PHP_BASE/coupon_validate.php").openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"; conn.doOutput = true
+                conn.connectTimeout = 8_000; conn.readTimeout = 8_000
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val json = JSONObject(conn.inputStream.bufferedReader().readText())
+                conn.disconnect()
+                handler.post { callback(json) }
+            } catch (e: Exception) { handler.post { callback(null) } }
+        }.start()
     }
 
     // ── Order ────────────────────────────────────────────────────────────────

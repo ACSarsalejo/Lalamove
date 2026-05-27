@@ -17,8 +17,12 @@ class SplashActivity : AppCompatActivity() {
         supportActionBar?.hide()
 
         Handler(Looper.getMainLooper()).postDelayed({
-            val currentUser = FirebaseAuth.getInstance().currentUser
-            if (currentUser != null && SessionManager.getUserId(this).isNotEmpty()) {
+            val hasSession = SessionManager.getUserId(this).isNotEmpty()
+            if (hasSession) {
+                // Ensure Firebase is signed in anonymously if not already signed in
+                if (FirebaseAuth.getInstance().currentUser == null) {
+                    FirebaseAuth.getInstance().signInAnonymously()
+                }
                 // Already logged in — go straight to the right dashboard
                 val role = SessionManager.getRole(this) ?: "customer"
                 val dest = if (role == "driver") {

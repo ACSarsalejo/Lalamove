@@ -167,7 +167,7 @@ class SettingsActivity : AppCompatActivity() {
             if (!valid) return@setOnClickListener
 
             btnChangePw.isEnabled = false
-            ApiClient.changePassword(newp) { success, error ->
+            ApiClient.changePassword(acctId, curr, newp) { success, error ->
                 btnChangePw.isEnabled = true
                 if (success) {
                     inputCurrentPw.text?.clear()
