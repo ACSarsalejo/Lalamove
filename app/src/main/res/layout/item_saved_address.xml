@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginBottom="10dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
-    app:strokeColor="#EEEEEE"
-    app:strokeWidth="1dp"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="14dp"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground">
@@ -18,25 +16,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
         android:gravity="center_vertical">
 
-        <!-- Type icon circle -->
-        <FrameLayout
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+        <ImageView
+            android:id="@+id/addrTypeIcon"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_location"
+            app:tint="#FFFFFF"
             android:background="@drawable/circle_orange"
-            android:layout_marginEnd="14dp">
-            <ImageView
-                android:id="@+id/addrTypeIcon"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_location"
-                app:tint="#FFFFFF" />
-        </FrameLayout>
+            android:layout_marginEnd="14dp" />
 
-        <!-- Label + Address -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_weight="1"
@@ -47,8 +38,7 @@
                 android:id="@+id/addrLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Home"
-                android:textColor="#222222"
+                android:textColor="#1A1A1A"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
@@ -56,39 +46,36 @@
                 android:id="@+id/addrText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="123 Main Street"
-                android:textColor="#666666"
+                android:textColor="#888888"
                 android:textSize="13sp"
                 android:layout_marginTop="2dp"
                 android:maxLines="2"
                 android:ellipsize="end" />
-
         </LinearLayout>
 
         <!-- Edit button -->
         <ImageView
             android:id="@+id/btnEditAddr"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:src="@drawable/ic_settings"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_note"
             app:tint="#AAAAAA"
-            android:padding="6dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_marginStart="8dp"
             android:clickable="true"
-            android:focusable="true" />
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless" />
 
         <!-- Delete button -->
         <ImageView
             android:id="@+id/btnDeleteAddr"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:src="@drawable/ic_logout"
-            app:tint="#E53935"
-            android:padding="6dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_close"
+            app:tint="#AAAAAA"
+            android:layout_marginStart="10dp"
             android:clickable="true"
-            android:focusable="true" />
-
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless" />
     </LinearLayout>
 
-</com.google.android.material.card.MaterialCardView>
+</LinearLayout>
