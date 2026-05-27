@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#121212">
+    android:background="#FFFFFF">
 
     <!-- Header -->
     <LinearLayout
@@ -13,7 +13,7 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingHorizontal="16dp"
-        android:background="#1A1A1A"
+        android:background="#FF6B00"
         android:elevation="4dp">
         <ImageView
             android:id="@+id/btnBackWallet"
@@ -57,14 +57,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:background="#1A1A1A"
+                    android:background="#FFFFFF"
                     android:padding="28dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="AVAILABLE BALANCE"
-                        android:textColor="#888888"
+                        android:textColor="#666666"
                         android:textSize="11sp"
                         android:textAllCaps="true"
                         android:letterSpacing="0.08"
@@ -109,7 +109,7 @@
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:padding="16dp"
-                    android:background="#1E1E1E">
+                    android:background="#FFFFFF">
 
                     <ImageView
                         android:layout_width="36dp"
@@ -128,7 +128,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="My Coupons"
-                            android:textColor="#FFFFFF"
+                            android:textColor="#1A1A1A"
                             android:textSize="15sp"
                             android:textStyle="bold" />
 
@@ -175,14 +175,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:background="#1E1E1E">
+                    android:background="#FFFFFF">
 
                     <TextView
                         android:id="@+id/textNoTransactions"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="No transactions yet.\nAdd funds to get started."
-                        android:textColor="#666666"
+                        android:textColor="#999999"
                         android:textSize="14sp"
                         android:gravity="center"
                         android:padding="48dp"

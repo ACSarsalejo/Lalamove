@@ -6,7 +6,7 @@
     android:id="@+id/loginRootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
+    android:background="#FFFFFF"
     android:orientation="vertical"
     tools:context=".LoginActivity">
 
@@ -15,7 +15,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:src="@drawable/ic_back"
-        app:tint="#FFFFFF"
+        app:tint="#222222"
         android:scaleType="center"
         android:padding="12dp"
         android:layout_margin="8dp" />
@@ -47,7 +47,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Great to have you back!"
-                android:textColor="#FFFFFF"
+                android:textColor="#1A1A1A"
                 android:textSize="28sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="28dp" />
@@ -82,14 +82,14 @@
                     app:boxCornerRadiusBottomStart="12dp"
                     app:boxCornerRadiusBottomEnd="12dp"
                     app:boxStrokeWidth="1dp"
-                    app:boxBackgroundColor="#1E1E1E">
+                    app:boxBackgroundColor="#FFFFFF">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/inputUsername"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="text"
-                        android:textColor="#FFFFFF"
+                        android:textColor="#1A1A1A"
                         android:paddingVertical="16dp" />
                 </com.google.android.material.textfield.TextInputLayout>
             </FrameLayout>
@@ -110,7 +110,7 @@
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusBottomEnd="12dp"
                 app:boxStrokeWidth="1dp"
-                app:boxBackgroundColor="#1E1E1E"
+                app:boxBackgroundColor="#FFFFFF"
                 android:layout_marginBottom="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -118,7 +118,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPassword"
-                    android:textColor="#FFFFFF"
+                    android:textColor="#1A1A1A"
                     android:paddingVertical="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -157,7 +157,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Terms &amp; Conditions"
-                    android:textColor="#555555"
+                    android:textColor="#888888"
                     android:textSize="12sp" />
 
                 <TextView

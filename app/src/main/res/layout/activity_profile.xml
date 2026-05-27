@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#121212">
+    android:background="#FFFFFF">
 
     <!-- Header Section -->
     <LinearLayout
@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="24dp"
-        android:background="#1A1A1A"
+        android:background="#FF6B00"
         android:elevation="4dp">
 
         <TextView
@@ -31,7 +31,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Customer"
-            android:textColor="#FF6B00"
+            android:textColor="#FFFFFF"
             android:textSize="14sp" />
     </LinearLayout>
 
@@ -66,15 +66,15 @@
                     android:layout_height="wrap_content"
                     android:text="Orders"
                     android:textSize="16sp"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="#222222" />
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_arrow_right"
-                    app:tint="#555555" />
+                    app:tint="#AAAAAA" />
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#2C2C2C" android:layout_marginHorizontal="20dp" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginHorizontal="20dp" />
 
             <!-- Wallet -->
             <LinearLayout
@@ -93,7 +93,7 @@
                     android:layout_height="wrap_content"
                     android:text="Wallet"
                     android:textSize="16sp"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="#222222" />
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
@@ -120,7 +120,7 @@
                     android:layout_height="wrap_content"
                     android:text="Delivery Form"
                     android:textSize="16sp"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="#222222" />
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
@@ -147,7 +147,7 @@
                     android:layout_height="wrap_content"
                     android:text="My Drivers"
                     android:textSize="16sp"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="#222222" />
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
@@ -174,7 +174,7 @@
                     android:layout_height="wrap_content"
                     android:text="Help Center"
                     android:textSize="16sp"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="#222222" />
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
@@ -201,7 +201,7 @@
                     android:layout_height="wrap_content"
                     android:text="Settings"
                     android:textSize="16sp"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="#222222" />
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
@@ -219,8 +219,8 @@
                 android:text="SIGN OUT"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                android:textColor="#FFFFFF"
-                android:backgroundTint="#2C2C2C"
+                android:textColor="#E53935"
+                android:backgroundTint="#FFEEEE"
                 app:cornerRadius="14dp"
                 app:elevation="0dp"
                 android:layout_marginTop="24dp"
