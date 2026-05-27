@@ -139,6 +139,10 @@ class OrderDetailsActivity : AppCompatActivity() {
         val pickup = intent.getStringExtra("PICKUP") ?: ""
         val dropoff = intent.getStringExtra("DROPOFF") ?: ""
         val distanceKm = intent.getDoubleExtra("DISTANCE_KM", 0.0)
+        val pickupLat = intent.getDoubleExtra("PICKUP_LAT", 0.0)
+        val pickupLng = intent.getDoubleExtra("PICKUP_LNG", 0.0)
+        val dropoffLat = intent.getDoubleExtra("DROPOFF_LAT", 0.0)
+        val dropoffLng = intent.getDoubleExtra("DROPOFF_LNG", 0.0)
 
         if (dropoff.isNotEmpty()) stopsList.add(dropoff)
 
@@ -149,11 +153,13 @@ class OrderDetailsActivity : AppCompatActivity() {
 
         val userId = SessionManager.getUserId(this)
 
-        firestore.collection("accounts").document(userId).get()
-            .addOnSuccessListener { doc ->
-                val phone = doc.getString("Acct_Phone")
-                if (phone != null) textContactNumber.text = phone
-            }
+        if (userId.isNotEmpty()) {
+            firestore.collection("accounts").document(userId).get()
+                .addOnSuccessListener { doc ->
+                    val phone = doc.getString("Acct_Phone")
+                    if (phone != null) textContactNumber.text = phone
+                }
+        }
 
         optContactLayout.setOnClickListener {
             showContactBottomSheet(textContactNumber)
@@ -260,140 +266,92 @@ class OrderDetailsActivity : AppCompatActivity() {
                 val couponCode = appliedCouponCode
                 val contactPhone = textContactNumber.text.toString()
 
-                // Use Firestore auto-generated document ID — no counter document needed.
-                // The MySQL Book_ID is assigned by the website's sync job after it lands in MySQL.
-                val bookingRef = firestore.collection("booking").document()
-                val orderId    = bookingRef.id
+                // Call PHP submit_booking.php first to generate the custom Book_ID in MySQL and sync to Firestore
+                val phpBody = org.json.JSONObject().apply {
+                    put("cust_id",        userId.toLongOrNull() ?: userId)
+                    put("vehicle_type",   vehicleType)
+                    put("total_fare",     currentFareAmount)
+                    put("pickup",         pickup)
+                    put("dropoff",        dropoff)
+                    put("payment_method", paymentMethod)
+                    put("notes",          driverNotes)
+                    put("coupon_code",    couponCode)
+                    put("item_title",     savedItemTitle)
+                    put("item_subtitle",  savedItemSubtitle)
+                    put("contact_phone",  contactPhone)
+                    put("distance_km",    distanceKm)
+                    put("pickup_lat",     pickupLat)
+                    put("pickup_lng",     pickupLng)
+                    put("dropoff_lat",    dropoffLat)
+                    put("dropoff_lng",    dropoffLng)
+                }.toString()
 
-                val bookingData = hashMapOf<String, Any?>(
-                    "Book_FirebaseDocID" to orderId,
-                    "Book_CustID"        to userId,
-                    "Book_DrvrID"        to null,
-                    "Book_VhclTypeID"    to vehicleType,
-                    "Book_TotalFare"     to currentFareAmount,
-                    "Book_Status"        to "pending",
-                    "Book_CreatedAt"     to FieldValue.serverTimestamp(),
-                    "Book_Pickuploc"     to pickup,
-                    "Book_Dropoffloc"    to dropoff,
-                    "Book_Notes"         to driverNotes,
-                    "Book_AddServices"   to addServices,
-                    "Book_IsRated"       to false,
-                    "Book_RatingGiven"   to null,
-                    "Book_PaymentMethod" to paymentMethod,
-                    "Book_PaidBy"        to paidBy,
-                    "Book_CouponCode"    to couponCode,
-                    "Book_ItemTitle"     to savedItemTitle,
-                    "Book_ItemSubtitle"  to savedItemSubtitle,
-                    "Book_ContactPhone"  to contactPhone,
-                    "Book_Feedback"      to null,
-                    "Book_Distance"      to distanceKm
-                )
-                bookingRef.set(bookingData)
-                    .addOnSuccessListener {
-                        // Deduct wallet immediately if payment method is Wallet
-                        if (paymentMethod == "Wallet") {
-                            val uid  = SessionManager.getUserId(this@OrderDetailsActivity)
-                            val role = SessionManager.getRole(this@OrderDetailsActivity) ?: "customer"
-                            ApiClient.walletDeduct(uid, role, currentFareAmount, "Payment for order $orderId") { _, _, _ -> }
-                        }
-
-                        // Write delivery/item sub-documents to Firestore (driver sees item info)
-                        stopsList.forEachIndexed { index, stopAddress ->
-                            val deliveryData = hashMapOf<String, Any?>(
-                                "Dlvr_BookID"          to orderId,
-                                "Dlvr_StopNumber"      to index + 1,
-                                "Dlvr_Address"         to stopAddress,
-                                "Dlvr_ContactName"     to null,
-                                "Dlvr_ContactPhone"    to contactPhone,
-                                "Dlvr_Status"          to "pending",
-                                "Dlvr_ProofOfDelivery" to null
-                            )
-                            firestore.collection("delivery").add(deliveryData)
-                                .addOnSuccessListener { dlvrRef ->
-                                    val itemData = hashMapOf<String, Any?>(
-                                        "Item_DlvrID"   to dlvrRef.id,
-                                        "Item_Name"     to if (index == 0) savedItemTitle else "Package",
-                                        "Item_Category" to "Delivery",
-                                        "Item_Quantity" to 1,
-                                        "Item_Size"     to "Small",
-                                        "Item_WeightKG" to 0.0,
-                                        "Item_Photo"    to null
-                                    )
-                                    firestore.collection("item").add(itemData)
-                                }
-                        }
-
-                        // ── Mirror to MySQL so the web platform sees the order instantly ──
-                        // Fire-and-forget: runs in background, doesn't block the UI.
-                        val userId   = SessionManager.getUserId(this@OrderDetailsActivity)
-                        val phpBody  = org.json.JSONObject().apply {
-                            put("order_id",       orderId)
-                            put("cust_id",        userId.toLongOrNull() ?: userId)
-                            put("vehicle_type",   vehicleType)
-                            put("total_fare",     currentFareAmount)
-                            put("pickup",         pickup)
-                            put("dropoff",        dropoff)
-                            put("payment_method", paymentMethod)
-                            put("notes",          driverNotes)
-                            put("coupon_code",    couponCode)
-                            put("item_title",     savedItemTitle)
-                            put("item_subtitle",  savedItemSubtitle)
-                            put("contact_phone",  contactPhone)
-                            put("distance_km",    distanceKm)
-                        }.toString()
-                        Thread {
-                            try {
-                                val conn = java.net.URL("http://10.0.2.2/lalamove/api/submit_booking.php")
-                                    .openConnection() as java.net.HttpURLConnection
-                                conn.requestMethod = "POST"; conn.doOutput = true
-                                conn.connectTimeout = 8_000; conn.readTimeout = 8_000
-                                conn.setRequestProperty("Content-Type", "application/json")
-                                conn.outputStream.use { it.write(phpBody.toByteArray()) }
-                                val resp = conn.inputStream.bufferedReader().readText()
-                                conn.disconnect()
-                                val json = org.json.JSONObject(resp)
-                                if (json.optBoolean("success", false)) {
-                                    val bookId = json.optInt("book_id", 0)
-                                    if (bookId > 0) {
-                                        // Back-write the MySQL Book_ID into the Firestore doc
-                                        // so complete_delivery.php and web can cross-reference
-                                        com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                                            .collection("booking").document(orderId)
-                                            .update("Book_ID", bookId)
+                Thread {
+                    try {
+                        val conn = java.net.URL("http://10.0.2.2/lalamove/api/submit_booking.php")
+                            .openConnection() as java.net.HttpURLConnection
+                        conn.requestMethod = "POST"; conn.doOutput = true
+                        conn.connectTimeout = 15_000; conn.readTimeout = 15_000
+                        conn.setRequestProperty("Content-Type", "application/json")
+                        conn.outputStream.use { it.write(phpBody.toByteArray()) }
+                        val resp = conn.inputStream.bufferedReader().readText()
+                        conn.disconnect()
+                        val json = org.json.JSONObject(resp)
+                        if (json.optBoolean("success", false)) {
+                            val bookId = json.optInt("book_id", 0)
+                            if (bookId > 0) {
+                                runOnUiThread {
+                                    // Deduct wallet immediately if payment method is Wallet
+                                    if (paymentMethod == "Wallet") {
+                                        val uid = SessionManager.getUserId(this@OrderDetailsActivity)
+                                        val role = SessionManager.getRole(this@OrderDetailsActivity) ?: "customer"
+                                        ApiClient.walletDeduct(uid, role, currentFareAmount, "Payment for order $bookId") { _, _, _ -> }
                                     }
-                                }
-                            } catch (_: Exception) {
-                                // Non-fatal: MySQL will be populated by the next admin sync
-                            }
-                        }.start()
 
-                        val userName = SessionManager.getName(this@OrderDetailsActivity).ifEmpty { "User" }
-                        val findIntent = Intent(this@OrderDetailsActivity, FindingDriverActivity::class.java).apply {
-                            putExtra("ORDER_ID",       orderId)
-                            putExtra("PICKUP",         pickup)
-                            putExtra("DROPOFF",        dropoff)
-                            putExtra("TOTAL_FARE",     total)
-                            putExtra("VEHICLE_TYPE",   vehicleType)
-                            putExtra("PAYMENT_METHOD", paymentMethod)
-                            putExtra("CONTACT_NUMBER", contactPhone)
-                            putExtra("DRIVER_NOTES",   driverNotes)
-                            putExtra("ITEM_DETAILS",   "$paymentMethod • $total")
-                            putExtra("USER_NAME",      userName)
+                                    val userName = SessionManager.getName(this@OrderDetailsActivity).ifEmpty { "User" }
+                                    val findIntent = Intent(this@OrderDetailsActivity, FindingDriverActivity::class.java).apply {
+                                        putExtra("ORDER_ID",       bookId.toString())
+                                        putExtra("PICKUP",         pickup)
+                                        putExtra("DROPOFF",        dropoff)
+                                        putExtra("TOTAL_FARE",     total)
+                                        putExtra("VEHICLE_TYPE",   vehicleType)
+                                        putExtra("PAYMENT_METHOD", paymentMethod)
+                                        putExtra("CONTACT_NUMBER", contactPhone)
+                                        putExtra("DRIVER_NOTES",   driverNotes)
+                                        putExtra("ITEM_DETAILS",   "$paymentMethod • $total")
+                                        putExtra("USER_NAME",      userName)
+                                    }
+                                    bottomSheetDialog.dismiss()
+                                    startActivity(findIntent)
+                                    finish()
+                                }
+                            } else {
+                                runOnUiThread {
+                                    btnPlaceOrderFinal.isEnabled = true
+                                    btnPlaceOrderFinal.text = "Place Order"
+                                    Toast.makeText(this@OrderDetailsActivity, "Booking failed: Invalid ID returned.", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        } else {
+                            val err = json.optString("error", "Unknown error")
+                            runOnUiThread {
+                                btnPlaceOrderFinal.isEnabled = true
+                                btnPlaceOrderFinal.text = "Place Order"
+                                Toast.makeText(this@OrderDetailsActivity, "Booking failed: $err", Toast.LENGTH_LONG).show()
+                            }
                         }
-                        bottomSheetDialog.dismiss()
-                        startActivity(findIntent)
-                        finish()
+                    } catch (e: Exception) {
+                        runOnUiThread {
+                            btnPlaceOrderFinal.isEnabled = true
+                            btnPlaceOrderFinal.text = "Place Order"
+                            AlertDialog.Builder(this@OrderDetailsActivity)
+                                .setTitle("Booking Failed")
+                                .setMessage(e.message ?: "Failed to connect to server. Check your connection.")
+                                .setPositiveButton("OK", null)
+                                .show()
+                        }
                     }
-                    .addOnFailureListener { e ->
-                        btnPlaceOrderFinal.isEnabled = true
-                        btnPlaceOrderFinal.text = "Place Order"
-                        android.util.Log.e("OrderDetails", "Booking write failed", e)
-                        AlertDialog.Builder(this@OrderDetailsActivity)
-                            .setTitle("Booking Failed")
-                            .setMessage(e.message ?: "Unknown error. Please try again.")
-                            .setPositiveButton("OK", null)
-                            .show()
-                    }
+                }.start()
             }
 
             bottomSheetDialog.setContentView(sheetView)

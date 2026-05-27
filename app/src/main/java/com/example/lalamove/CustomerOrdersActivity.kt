@@ -94,6 +94,21 @@ class CustomerOrdersActivity : AppCompatActivity() {
                     .setTitle("Hide Order")
                     .setMessage("Remove this order from your history? It stays saved and won't be permanently deleted.")
                     .setPositiveButton("Remove") { _, _ ->
+                        val orderIndex = orderIds.indexOf(id)
+                        val currentStatus = if (orderIndex >= 0) {
+                            ordersList[orderIndex]["Book_Status"]?.toString() ?: "pending"
+                        } else {
+                            "pending"
+                        }
+                        if (currentStatus in listOf("pending", "driver_assigned", "accepted", "driver_en_route", "picked_up")) {
+                            val custId = SessionManager.getUserId(this@CustomerOrdersActivity)
+                            ApiClient.cancelOrder(id, custId) { ok, _ ->
+                                if (!ok) {
+                                    firestore.collection("booking").document(id)
+                                        .update("Book_Status", "cancelled")
+                                }
+                            }
+                        }
                         hideOrder(id)
                         val removePos = orderIds.indexOf(id)
                         if (removePos >= 0) {

@@ -60,23 +60,39 @@ object ApiClient {
                 val json = JSONObject(resp)
                 
                 if (json.optBoolean("success", false)) {
-                    val role = json.optString("role")
-                    val userId = json.optString("user_id")
-                    val name = json.optString("name")
-                    val email = json.optString("email")
-                    val phone = json.optString("phone")
+                    val role       = json.optString("role")
+                    val userId     = json.optString("user_id", json.optString("acct_id"))
+                    val name       = json.optString("name")
+                    val email      = json.optString("email")
+                    val phone      = json.optString("phone")
                     val isVerified = json.optBoolean("is_verified", false)
                     
-                    // Sign in anonymously to Firebase Auth as a background task
-                    // so auth.currentUser is populated and has access to Firestore.
-                    if (auth.currentUser == null) {
-                        auth.signInAnonymously().addOnCompleteListener { task ->
-                            val result = LoginResult(role, userId, name, email, phone, isVerified)
+                    val hasFirebaseAuth = json.optBoolean("has_firebase_auth", false)
+                    val result = LoginResult(role, userId, name, email, phone, isVerified)
+
+                    if (auth.currentUser != null) {
+                        // Already signed in to Firebase — reuse the existing session.
+                        handler.post { callback(result, "") }
+                    } else if (hasFirebaseAuth && email.isNotEmpty()) {
+                        // Use the real Firebase Auth account (avoids orphaned anonymous UIDs).
+                        // Both web-registered and app-registered users have Firebase Auth accounts.
+                        auth.signInWithEmailAndPassword(email, password)
+                            .addOnSuccessListener {
+                                handler.post { callback(result, "") }
+                            }
+                            .addOnFailureListener {
+                                // Firebase Auth rejected the credentials (e.g. email format differs
+                                // between app and web, or account not yet propagated). Fall back to
+                                // anonymous so the user can still access Firestore via the web API key.
+                                auth.signInAnonymously().addOnCompleteListener {
+                                    handler.post { callback(result, "") }
+                                }
+                            }
+                    } else {
+                        // No Firebase Auth account on file — use anonymous session.
+                        auth.signInAnonymously().addOnCompleteListener {
                             handler.post { callback(result, "") }
                         }
-                    } else {
-                        val result = LoginResult(role, userId, name, email, phone, isVerified)
-                        handler.post { callback(result, "") }
                     }
                 } else {
                     val err = json.optString("error", "Incorrect email/phone or password.")
@@ -911,6 +927,9 @@ object ApiClient {
         callback: (Boolean, Double, Double, String) -> Unit
     ) {
         Thread {
+            var phpSuccess = false
+            var earnings = 0.0
+            var balance  = 0.0
             try {
                 val body = JSONObject().apply {
                     put("order_id",  orderId)
@@ -925,17 +944,28 @@ object ApiClient {
                 val resp = conn.inputStream.bufferedReader().readText(); conn.disconnect()
                 val json = JSONObject(resp)
                 if (json.optBoolean("success", false)) {
-                    handler.post {
-                        callback(true,
-                            json.optDouble("earnings", 0.0),
-                            json.optDouble("balance",  0.0),
-                            "")
-                    }
-                } else {
-                    handler.post { callback(false, 0.0, 0.0, json.optString("error", "Failed.")) }
+                    phpSuccess = true
+                    earnings = json.optDouble("earnings", 0.0)
+                    balance  = json.optDouble("balance",  0.0)
                 }
-            } catch (e: Exception) {
-                handler.post { callback(false, 0.0, 0.0, e.message ?: "Network error.") }
+            } catch (_: Exception) { /* PHP unreachable — fall through to Firestore fallback */ }
+
+            if (phpSuccess) {
+                handler.post { callback(true, earnings, balance, "") }
+            } else {
+                // Firestore fallback: advance status directly so the driver isn't blocked
+                val firestoreStatus = when (action) {
+                    "en_route"  -> "driver_en_route"
+                    "picked_up" -> "picked_up"
+                    "delivered" -> "delivered"
+                    else        -> action
+                }
+                handler.post {
+                    firestore.collection("booking").document(orderId)
+                        .update(mapOf("Book_Status" to firestoreStatus, "Book_DrvrID" to driverId))
+                        .addOnSuccessListener { callback(true, 0.0, 0.0, "") }
+                        .addOnFailureListener { e -> callback(false, 0.0, 0.0, e.message ?: "Failed.") }
+                }
             }
         }.start()
     }

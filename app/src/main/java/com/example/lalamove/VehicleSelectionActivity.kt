@@ -148,6 +148,10 @@ class VehicleSelectionActivity : AppCompatActivity() {
                 putExtra("DROPOFF",      findViewById<TextView>(R.id.dropoffLocationText).text.toString())
                 putExtra("DISTANCE_KM",  distanceKm)
                 putExtra("STOPS_JSON",   stopsJson)
+                putExtra("PICKUP_LAT",   pickupLat ?: 0.0)
+                putExtra("PICKUP_LNG",   pickupLng ?: 0.0)
+                putExtra("DROPOFF_LAT",  dropoffLat ?: 0.0)
+                putExtra("DROPOFF_LNG",  dropoffLng ?: 0.0)
             })
         }
 
@@ -631,12 +635,17 @@ class VehicleSelectionActivity : AppCompatActivity() {
         }
     }
 
+    private fun getHiddenOrders(): Set<String> =
+        getSharedPreferences("ll_hidden", android.content.Context.MODE_PRIVATE)
+            .getStringSet("hidden_orders", emptySet()) ?: emptySet()
+
     private fun checkRecentOrder() {
         val userId = SessionManager.getUserId(this).takeIf { it.isNotEmpty() } ?: return
         val banner     = findViewById<MaterialCardView>(R.id.recentOrderBanner)
         val statusText = findViewById<TextView>(R.id.recentOrderStatus)
         val orderText  = findViewById<TextView>(R.id.recentOrderText)
-        val activeStatuses = listOf("pending", "driver_assigned", "accepted", "driver_en_route", "picked_up", "delivered", "completed")
+        val activeStatuses = listOf("pending", "driver_assigned", "accepted", "driver_en_route", "picked_up", "delivered", "completed", "cancelled")
+        val hidden = getHiddenOrders()
 
         fun showBanner(doc: com.google.firebase.firestore.DocumentSnapshot) {
             val status  = doc.getString("Book_Status") ?: "pending"
@@ -647,6 +656,7 @@ class VehicleSelectionActivity : AppCompatActivity() {
                 "pending"                                         -> "PENDING"        to ContextCompat.getColor(this, android.R.color.holo_orange_dark)
                 "driver_assigned", "accepted", "driver_en_route" -> "DRIVER ASSIGNED" to ContextCompat.getColor(this, android.R.color.holo_blue_dark)
                 "picked_up"                                       -> "IN TRANSIT"     to ContextCompat.getColor(this, android.R.color.holo_blue_dark)
+                "cancelled"                                       -> "CANCELLED"      to ContextCompat.getColor(this, android.R.color.holo_red_dark)
                 else                                              -> "DELIVERED"      to ContextCompat.getColor(this, android.R.color.holo_green_dark)
             }
             statusText.text = label; statusText.setTextColor(color)
@@ -670,6 +680,7 @@ class VehicleSelectionActivity : AppCompatActivity() {
 
         fun processDocs(docs: List<com.google.firebase.firestore.DocumentSnapshot>): Boolean {
             val active = docs.firstOrNull { doc ->
+                if (doc.id in hidden) return@firstOrNull false
                 val s = doc.getString("Book_Status") ?: "pending"
                 val rated = doc.get("Book_IsRated") as? Boolean ?: false
                 !((s == "delivered" || s == "completed") && rated)
