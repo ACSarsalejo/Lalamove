@@ -21,8 +21,10 @@ class SignUpActivity : AppCompatActivity() {
         val btnSignUp              = findViewById<Button>(R.id.btnSignUp)
         val loginLink              = findViewById<TextView>(R.id.loginLink)
 
-        val inputDisplayNameLayout = findViewById<TextInputLayout>(R.id.inputDisplayNameLayout)
-        val inputDisplayName       = findViewById<TextInputEditText>(R.id.inputDisplayName)
+        val inputFirstNameLayout   = findViewById<TextInputLayout>(R.id.inputFirstNameLayout)
+        val inputFirstName         = findViewById<TextInputEditText>(R.id.inputFirstName)
+        val inputLastNameLayout    = findViewById<TextInputLayout>(R.id.inputLastNameLayout)
+        val inputLastName          = findViewById<TextInputEditText>(R.id.inputLastName)
         val inputPhoneLayout       = findViewById<TextInputLayout>(R.id.inputPhoneLayout)
         val inputPhone             = findViewById<TextInputEditText>(R.id.inputPhone)
         val inputEmailLayout       = findViewById<TextInputLayout>(R.id.inputEmailLayout)
@@ -34,20 +36,18 @@ class SignUpActivity : AppCompatActivity() {
         loginLink.setOnClickListener { navigateToLogin() }
 
         btnSignUp.setOnClickListener {
-            val name     = inputDisplayName.text.toString().trim()
-            val phone    = inputPhone.text.toString().trim()
-            val email    = inputEmail.text.toString().trim()
-            val password = inputPassword.text.toString().trim()
+            val firstName = inputFirstName.text.toString().trim()
+            val lastName  = inputLastName.text.toString().trim()
+            val phone     = inputPhone.text.toString().trim()
+            val email     = inputEmail.text.toString().trim()
+            val password  = inputPassword.text.toString().trim()
 
-            if (!validate(name, phone, email, password,
-                    inputDisplayNameLayout, inputPhoneLayout, inputEmailLayout, inputPasswordLayout)) return@setOnClickListener
+            if (!validate(firstName, lastName, phone, email, password,
+                    inputFirstNameLayout, inputLastNameLayout,
+                    inputPhoneLayout, inputEmailLayout, inputPasswordLayout)) return@setOnClickListener
 
             NotificationHelper.showBanner(signupRootLayout, "Creating account...", true)
             btnSignUp.isEnabled = false
-
-            val parts     = name.split(" ", limit = 2)
-            val firstName = parts[0]
-            val lastName  = if (parts.size > 1) parts[1] else ""
 
             // Firebase Auth creates the account; Firestore stores the profile
             ApiClient.register(firstName, lastName, phone, email, password) { success, uid, error ->
@@ -67,10 +67,15 @@ class SignUpActivity : AppCompatActivity() {
         }
     }
 
-    private fun validate(name: String, phone: String, email: String, password: String,
-                         nl: TextInputLayout, pl: TextInputLayout, el: TextInputLayout, psl: TextInputLayout): Boolean {
+    private fun validate(
+        firstName: String, lastName: String,
+        phone: String, email: String, password: String,
+        fnl: TextInputLayout, lnl: TextInputLayout,
+        pl: TextInputLayout, el: TextInputLayout, psl: TextInputLayout
+    ): Boolean {
         var v = true
-        if (name.isEmpty())      { nl.error  = "Required";    v = false } else nl.error  = null
+        if (firstName.isEmpty()) { fnl.error = "Required";    v = false } else fnl.error = null
+        if (lastName.isEmpty())  { lnl.error = "Required";    v = false } else lnl.error = null
         if (phone.isEmpty())     { pl.error  = "Required";    v = false } else pl.error  = null
         if (email.isEmpty())     { el.error  = "Required";    v = false } else el.error  = null
         if (password.length < 6) { psl.error = "Min 6 chars"; v = false } else psl.error = null

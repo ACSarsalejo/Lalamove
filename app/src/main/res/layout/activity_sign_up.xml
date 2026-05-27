@@ -71,31 +71,62 @@
             android:paddingTop="24dp"
             android:paddingBottom="40dp">
 
-            <!-- Full Name -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/inputDisplayNameLayout"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            <!-- First Name / Last Name -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
                 android:layout_marginBottom="16dp"
-                android:hint="Full Name"
-                app:boxStrokeColor="#FF6B00"
-                app:boxStrokeWidthFocused="2dp"
-                app:hintTextColor="#888888"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxBackgroundColor="#FFFFFF"
-                app:startIconDrawable="@drawable/ic_search"
-                app:startIconTint="#FF6B00">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/inputDisplayName"
-                    android:layout_width="match_parent"
+                android:baselineAligned="false">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/inputFirstNameLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:inputType="textPersonName"
-                    android:textColor="#1A1A1A" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:hint="First Name"
+                    app:boxStrokeColor="#FF6B00"
+                    app:boxStrokeWidthFocused="2dp"
+                    app:hintTextColor="#888888"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxBackgroundColor="#FFFFFF">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/inputFirstName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName|textCapWords"
+                        android:textColor="#1A1A1A" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/inputLastNameLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Last Name"
+                    app:boxStrokeColor="#FF6B00"
+                    app:boxStrokeWidthFocused="2dp"
+                    app:hintTextColor="#888888"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxBackgroundColor="#FFFFFF">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/inputLastName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName|textCapWords"
+                        android:textColor="#1A1A1A" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
 
             <!-- Phone Number -->
             <com.google.android.material.textfield.TextInputLayout
