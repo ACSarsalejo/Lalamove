@@ -4,13 +4,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="#121212">
 
     <!-- Header -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="#1A1A1A"
         app:elevation="2dp">
         <LinearLayout
             android:layout_width="match_parent"
@@ -23,13 +23,13 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_search"
-                app:tint="#444444" />
+                app:tint="#FFFFFF" />
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="Active Delivery"
-                android:textColor="#222222"
+                android:textColor="#FFFFFF"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:gravity="center" />
@@ -60,7 +60,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="#FFFFFF"
+            android:background="#1A1A1A"
             android:elevation="16dp"
             android:padding="20dp">
 
@@ -81,7 +81,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Pickup"
-                    android:textColor="#222222"
+                    android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:maxLines="1"
                     android:ellipsize="end" />
@@ -105,7 +105,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Dropoff"
-                    android:textColor="#222222"
+                    android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:maxLines="1"
                     android:ellipsize="end" />
@@ -120,7 +120,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Earnings"
-                    android:textColor="#888888"
+                    android:textColor="#AAAAAA"
                     android:textSize="14sp"
                     android:layout_centerVertical="true" />
                 <TextView
